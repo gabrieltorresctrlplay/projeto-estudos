@@ -80,6 +80,7 @@ npm run deploy   # Build + Deploy Firebase
 
 Workflows são atalhos para automatizar tarefas comuns:
 
+- **`/start`** - Iniciar sessão (carrega contexto do projeto)
 - **`/deploy`** - Deploy rápido para Firebase Hosting
 - **`/end`** - Encerrar sessão (atualiza docs + commit + push)
 

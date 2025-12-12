@@ -4,6 +4,32 @@ Workflows são atalhos para automatizar tarefas comuns no projeto.
 
 ## 📋 Lista de Workflows
 
+### 🎬 `/start`
+
+**Descrição:** Iniciar nova sessão - Carregar contexto do projeto
+
+**O que faz:**
+
+1. ✅ Lê documentação principal (README.md)
+2. ✅ Verifica status do Git
+3. ✅ Lista últimas sessões de trabalho
+4. ✅ Carrega dependências atuais
+5. ✅ Apresenta resumo do projeto
+
+**Quando usar:**
+
+- No início de cada nova conversa
+- Quando voltar ao projeto depois de um tempo
+- Para relembrar o contexto atual
+
+**Resultado:**
+
+- Contexto completo carregado
+- Resumo do estado atual
+- Sugestões de próximos passos
+
+---
+
 ### 🚀 `/deploy`
 
 **Descrição:** Deploy rápido para Firebase Hosting
@@ -57,6 +83,12 @@ Workflows são atalhos para automatizar tarefas comuns no projeto.
 Basta digitar o comando do workflow no chat:
 
 ```
+/start
+```
+
+ou
+
+```
 /deploy
 ```
 
@@ -76,6 +108,7 @@ Os workflows estão salvos em:
 
 ```
 .agent/workflows/
+├── start.md
 ├── deploy.md
 └── end.md
 ```
