@@ -31,12 +31,20 @@ Projeto base minimalista com **Vite + React + TypeScript + Tailwind CSS v4 + Fir
 ### 📁 Estrutura de Arquivos
 
 ```
-oiee/
+projeto-estudos/
+├── .agent/               # 🤖 Configurações da IA
+│   ├── rules/
+│   │   └── rules.md      # Regras para Gemini AI
+│   └── workflows/
+│       ├── deploy.md     # 🚀 /deploy
+│       └── end.md        # 💾 /end
 ├── docs/                 # 📚 Documentação
-│   ├── contextos/        # Contextos do projeto
+│   ├── sessions/         # Resumos automáticos (IA)
+│   ├── transcripts/      # Conversas exportadas (manual)
 │   ├── AUTH.md          # Guia de autenticação
 │   ├── DEPLOY.md        # Guia de deploy
 │   ├── LINKS.md         # Links úteis
+│   ├── WORKFLOWS.md     # Workflows disponíveis
 │   ├── README.md        # Índice da documentação
 │   └── SETUP.md         # Setup e próximos passos
 ├── src/
@@ -53,7 +61,6 @@ oiee/
 ├── .gitignore           # Git ignore
 ├── firebase.json        # Config Firebase Hosting
 ├── firestore.rules      # Regras de segurança
-├── GEMINI.md            # Regras para Gemini AI
 └── package.json
 ```
 
@@ -66,6 +73,15 @@ npm run preview  # Preview da build
 npm run format   # Formatar código
 npm run deploy   # Build + Deploy Firebase
 ```
+
+## 🔧 Workflows (Atalhos)
+
+Workflows são atalhos para automatizar tarefas comuns:
+
+- **`/deploy`** - Deploy rápido para Firebase Hosting
+- **`/end`** - Encerrar sessão (atualiza docs + commit + push)
+
+Veja detalhes em **[docs/WORKFLOWS.md](docs/WORKFLOWS.md)**
 
 ## 🚦 Como Usar
 
