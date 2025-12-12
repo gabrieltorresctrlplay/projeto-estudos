@@ -33,8 +33,11 @@ Projeto base minimalista com **Vite + React + TypeScript + Tailwind CSS v4 + Fir
 ```
 oiee/
 ├── docs/                 # 📚 Documentação
+│   ├── contextos/        # Contextos do projeto
 │   ├── AUTH.md          # Guia de autenticação
 │   ├── DEPLOY.md        # Guia de deploy
+│   ├── LINKS.md         # Links úteis
+│   ├── README.md        # Índice da documentação
 │   └── SETUP.md         # Setup e próximos passos
 ├── src/
 │   ├── lib/             # Serviços Firebase
@@ -50,6 +53,7 @@ oiee/
 ├── .gitignore           # Git ignore
 ├── firebase.json        # Config Firebase Hosting
 ├── firestore.rules      # Regras de segurança
+├── GEMINI.md            # Regras para Gemini AI
 └── package.json
 ```
 
@@ -146,6 +150,7 @@ O projeto inclui um Design System completo com:
 
 ## 📚 Documentação
 
+- **[docs/LINKS.md](docs/LINKS.md)** - Links úteis do projeto
 - **[docs/AUTH.md](docs/AUTH.md)** - Guia completo de autenticação
 - **[docs/DEPLOY.md](docs/DEPLOY.md)** - Guia de deploy Firebase
 - **[docs/SETUP.md](docs/SETUP.md)** - Setup e próximos passos
