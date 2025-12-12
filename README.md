@@ -1,6 +1,6 @@
 # oiee
 
-> 🔥 **YOLOMODE ATIVADO** - Repositório de testes com auto-execução total! [Saiba mais](.agent/YOLOMODE.md)
+> 🔥 **YOLOMODE ATIVADO** - Repositório de testes com auto-execução total! [Saiba mais](.agent/rules/yolomode.md)
 
 Projeto base minimalista com **Vite + React + TypeScript + Tailwind CSS v4 + Firebase**.
 
