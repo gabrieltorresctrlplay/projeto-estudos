@@ -1,0 +1,22 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Regras de segurança para usuários autenticados
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Coleção pública (apenas leitura para todos, escrita para autenticados)
+    match /public/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Regra temporária para desenvolvimento (REMOVER EM PRODUÇÃO)
+    // Expira em: 10/01/2026
+    match /{document=**} {
+      allow read, write: if request.time < timestamp.date(2026, 1, 10);
+    }
+  }
+}
