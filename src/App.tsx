@@ -1,8 +1,20 @@
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+
+import { MainLayout } from './components/layout/MainLayout'
+import Home from './pages/Home'
+
 function App() {
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-gray-100">
-      <h1 className="text-4xl font-bold text-gray-800">oiiiiii</h1>
-    </div>
+    <BrowserRouter>
+      <MainLayout>
+        <Routes>
+          <Route
+            path="/"
+            element={<Home />}
+          />
+        </Routes>
+      </MainLayout>
+    </BrowserRouter>
   )
 }
 

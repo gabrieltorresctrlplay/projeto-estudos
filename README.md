@@ -8,6 +8,8 @@ Projeto base minimalista com **Vite + React + TypeScript + Tailwind CSS v4 + Fir
 
 - **[Vite](https://vite.dev/)** v7.2.4 - Build tool ultrarrápido
 - **[React](https://react.dev/)** v19.2.0 - Biblioteca UI
+- **[React Router](https://reactrouter.com/)** v7 - Navegação
+- **[Framer Motion](https://www.framer.com/motion/)** - Animações
 - **[TypeScript](https://www.typescriptlang.org/)** v5.9.3 - Tipagem estática
 - **[Tailwind CSS](https://tailwindcss.com/)** v4.1.18 - Framework CSS utility-first
 - **[Firebase](https://firebase.google.com/)** v12.6.0 - Backend as a Service
@@ -26,6 +28,8 @@ Projeto base minimalista com **Vite + React + TypeScript + Tailwind CSS v4 + Fir
 - ✅ Projeto Vite inicializado com React + TypeScript
 - ✅ Tailwind CSS v4 com Design System (OKLCH colors)
 - ✅ Firebase configurado (Auth + Firestore + Hosting)
+- ✅ **React Router** configurado + Aliases (`@/`)
+- ✅ **Landing Page** (Home) com Framer Motion e UI Enterprise
 - ✅ Prettier com ordenação de imports e classes Tailwind
 - ✅ Estrutura minimalista e clean code
 - ✅ **DEPLOYED**: https://projeto-estudos-b4fcf.web.app/

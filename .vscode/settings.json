@@ -108,4 +108,15 @@
     "chat.editing.autoAcceptDelay": 1,
     "chat.agent.thinkingStyle": "none",
     "chat.tools.terminal.enableAutoApprove": true,
+    "files.exclude": {
+        "**/.DS_Store": false,
+        "**/.git": false,
+        "**/.hg": false,
+        "**/.svn": false,
+        "**/Thumbs.db": false
+    },
+    "search.exclude": {
+        "**/*.code-search": false,
+        "**/bower_components": false
+    },
 }
