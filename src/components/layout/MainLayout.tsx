@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react'
 
-import { AnimatedBlurBackground } from '@/components/AnimatedBlurBackground'
-import { ThemeProvider } from '@/components/theme-provider'
+import { AnimatedBlurBackground } from '@/components/ui/animated-blur-background'
+import { ThemeProvider } from '@/components/theme/theme-provider'
 
 import { Footer } from './Footer'
 import { Topbar } from './Topbar'

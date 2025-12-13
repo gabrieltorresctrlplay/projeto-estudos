@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { Feature } from '@/types'
 import { motion } from 'framer-motion'
 
@@ -10,7 +11,7 @@ interface FeatureCardProps {
  * Individual feature card component with hover animations
  * Compact design for fullscreen responsive layout
  */
-export function FeatureCard({ feature, index }: FeatureCardProps) {
+export const FeatureCard = memo(function FeatureCard({ feature, index }: FeatureCardProps) {
   const Icon = feature.icon
 
   return (
@@ -32,4 +33,4 @@ export function FeatureCard({ feature, index }: FeatureCardProps) {
       <p className="text-muted-foreground text-xs md:text-base">{feature.description}</p>
     </motion.article>
   )
-}
+})

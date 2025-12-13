@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useReducedMotion } from '@/hooks'
 import { motion } from 'framer-motion'
 
@@ -5,7 +6,7 @@ import { motion } from 'framer-motion'
  * Animated background with floating gradient blobs
  * Respects user's reduced motion preference for accessibility
  */
-export const AnimatedBlurBackground = () => {
+export const AnimatedBlurBackground = memo(function AnimatedBlurBackground() {
   const prefersReducedMotion = useReducedMotion()
 
   return (
@@ -47,4 +48,4 @@ export const AnimatedBlurBackground = () => {
       />
     </div>
   )
-}
+})

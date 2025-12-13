@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useAnimationVariants } from '@/hooks'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button'
  * Hero section component for the home page
  * Compact and responsive for fullscreen layout
  */
-export function Hero() {
+export const Hero = memo(function Hero() {
   const { containerVariants, itemVariants } = useAnimationVariants()
 
   return (
@@ -58,4 +59,4 @@ export function Hero() {
       </motion.div>
     </motion.div>
   )
-}
+})

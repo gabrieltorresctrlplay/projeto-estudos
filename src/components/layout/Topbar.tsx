@@ -1,14 +1,14 @@
 import { COMPANY, NAV_LINKS } from '@/constants'
 
 import { Button } from '@/components/ui/button'
-import { ModeToggle } from '@/components/mode-toggle'
+import { ModeToggle } from '@/components/theme/mode-toggle'
 
 /**
  * Top navigation bar component
  */
 export function Topbar() {
   return (
-    <header className="bg-muted/50 border-border relative sticky top-0 z-50 w-full border-b backdrop-blur-md">
+    <header className="bg-muted/50 border-border sticky top-0 z-50 w-full border-b backdrop-blur-md">
       <nav
         className="container mx-auto flex h-16 items-center justify-between px-4"
         aria-label="Navegação principal"
