@@ -31,7 +31,11 @@ Projeto base minimalista com **Vite + React + TypeScript + Tailwind CSS v4 + Fir
 - ✅ **React Router** configurado + Aliases (`@/`)
 - ✅ **Landing Page** (Home) com Framer Motion e UI Enterprise
 - ✅ Prettier com ordenação de imports e classes Tailwind
-- ✅ Estrutura minimalista e clean code
+- ✅ **Arquitetura Refatorada** - Código modular e escalável
+- ✅ **Custom Hooks** para animações e acessibilidade
+- ✅ **TypeScript Types** centralizados
+- ✅ **Lazy Loading** com React Suspense
+- ✅ **Acessibilidade (a11y)** - ARIA labels e reduced motion
 - ✅ **DEPLOYED**: https://projeto-estudos-b4fcf.web.app/
 
 ### 📁 Estrutura de Arquivos
@@ -43,7 +47,8 @@ projeto-estudos/
 │   │   └── rules.md      # Regras para Gemini AI
 │   └── workflows/
 │       ├── deploy.md     # 🚀 /deploy
-│       └── end.md        # 💾 /end
+│       ├── end.md        # 💾 /end
+│       └── start.md      # 🎬 /start
 ├── docs/                 # 📚 Documentação
 │   ├── sessions/         # Resumos automáticos (IA)
 │   ├── transcripts/      # Conversas exportadas (manual)
@@ -54,11 +59,39 @@ projeto-estudos/
 │   ├── README.md        # Índice da documentação
 │   └── SETUP.md         # Setup e próximos passos
 ├── src/
+│   ├── components/      # Componentes React
+│   │   ├── home/        # Componentes da Home
+│   │   │   ├── Hero.tsx
+│   │   │   ├── FeatureCard.tsx
+│   │   │   └── FeatureGrid.tsx
+│   │   ├── layout/      # Componentes de layout
+│   │   │   ├── MainLayout.tsx
+│   │   │   ├── Topbar.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   └── Container.tsx
+│   │   ├── ui/          # Componentes UI reutilizáveis
+│   │   │   ├── button.tsx
+│   │   │   ├── dropdown-menu.tsx
+│   │   │   └── loading-spinner.tsx
+│   │   ├── AnimatedBlurBackground.tsx
+│   │   ├── theme-provider.tsx
+│   │   └── mode-toggle.tsx
+│   ├── hooks/           # Custom React Hooks
+│   │   ├── useAnimationVariants.ts
+│   │   └── useReducedMotion.ts
+│   ├── constants/       # Constantes da aplicação
+│   │   ├── features.ts
+│   │   └── navigation.ts
+│   ├── types/           # TypeScript types
+│   │   └── index.ts
 │   ├── lib/             # Serviços Firebase
 │   │   ├── firebase.ts  # Configuração
 │   │   ├── auth.ts      # Autenticação
 │   │   ├── firestore.ts # Firestore CRUD
+│   │   ├── utils.ts     # Funções utilitárias
 │   │   └── index.ts     # Exports
+│   ├── pages/           # Páginas da aplicação
+│   │   └── Home.tsx
 │   ├── App.tsx
 │   ├── index.css        # Design System + Tailwind
 │   └── main.tsx
