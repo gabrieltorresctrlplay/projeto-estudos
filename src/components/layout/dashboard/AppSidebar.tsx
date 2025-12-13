@@ -1,9 +1,15 @@
+import LogoSvg from '@/assets/logo.svg?react'
+import { useCompanyContext } from '@/contexts/CompanyContext'
 import {
+  BarChart3,
   ChevronsUpDown,
   Laptop,
   LayoutDashboard,
+  List,
   LogOut,
   Moon,
+  Package,
+  ShoppingCart,
   Sun,
   User as UserIcon,
 } from 'lucide-react'
@@ -47,13 +53,19 @@ import {
 } from '@/components/ui/sidebar'
 import { useTheme } from '@/components/theme/theme-provider'
 
-const NAV_ITEMS = [{ title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard }]
-
 export function AppSidebar() {
   const user = authService.getCurrentUser()
   const navigate = useNavigate()
   const { setTheme } = useTheme()
   const { state } = useSidebar()
+  const { companies, selectedCompany } = useCompanyContext()
+
+  // Calculate dashboard URL based on current company
+  const currentCompanyIndex = selectedCompany
+    ? companies.findIndex((c) => c.id === selectedCompany.id)
+    : 0
+  const dashboardUrl =
+    currentCompanyIndex !== -1 ? `/dashboard/${currentCompanyIndex}` : '/dashboard/0'
 
   const handleLogout = async () => {
     await authService.signOut()
@@ -69,9 +81,9 @@ export function AppSidebar() {
               size="lg"
               asChild
             >
-              <Link to="/dashboard">
+              <Link to={dashboardUrl}>
                 <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <span className="font-semibold">N</span>
+                  <LogoSvg className="h-5 w-5 fill-current" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">NerfasInc</span>
@@ -87,20 +99,86 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV_ITEMS.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={item.title}
-                    isActive={window.location.pathname === item.url}
-                  >
-                    <Link to={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Dashboard"
+                  isActive={
+                    window.location.pathname === dashboardUrl ||
+                    window.location.pathname === '/dashboard'
+                  }
+                >
+                  <Link to={dashboardUrl}>
+                    <LayoutDashboard />
+                    <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Fila"
+                  isActive={window.location.pathname.includes('/fila')}
+                >
+                  <Link to={`${dashboardUrl}/fila`}>
+                    <List />
+                    <span>Fila</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Estoque"
+                  isActive={window.location.pathname.includes('/estoque')}
+                >
+                  <Link to={`${dashboardUrl}/estoque`}>
+                    <Package />
+                    <span>Estoque</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Pedidos"
+                  isActive={window.location.pathname.includes('/pedidos')}
+                >
+                  <Link to={`${dashboardUrl}/pedidos`}>
+                    <ShoppingCart />
+                    <span>Pedidos</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Estatísticas"
+                  isActive={window.location.pathname.includes('/estatisticas')}
+                >
+                  <Link to={`${dashboardUrl}/estatisticas`}>
+                    <BarChart3 />
+                    <span>Estatísticas</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Perfil"
+                  isActive={window.location.pathname.includes('/perfil')}
+                >
+                  <Link to={`${dashboardUrl}/perfil`}>
+                    <UserIcon />
+                    <span>Perfil</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

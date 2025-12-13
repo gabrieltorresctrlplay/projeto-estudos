@@ -25,3 +25,17 @@ export interface ThemeProviderState {
   theme: Theme
   setTheme: (theme: Theme) => void
 }
+
+// Company Management
+export interface Company {
+  id: string
+  name: string
+  ownerId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface UserPreferences {
+  theme: Theme
+  selectedCompanyId: string | null
+}

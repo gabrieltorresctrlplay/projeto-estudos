@@ -12,6 +12,8 @@ const Home = lazy(() => import('./pages/Home'))
 const Login = lazy(() => import('./pages/auth/Login'))
 const Register = lazy(() => import('./pages/auth/Register'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
+const Queue = lazy(() => import('./pages/dashboard/Queue'))
+const UnderConstruction = lazy(() => import('./pages/dashboard/UnderConstruction'))
 
 function App() {
   return (
@@ -48,8 +50,52 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
               <Route
+                path="/dashboard/:companyIndex"
+                element={<Dashboard />}
+              />
+              <Route
                 path="/dashboard"
                 element={<Dashboard />}
+              />
+              <Route
+                path="/dashboard/:companyIndex/fila"
+                element={<Queue />}
+              />
+              <Route
+                path="/dashboard/:companyIndex/estoque"
+                element={
+                  <UnderConstruction
+                    title="Estoque"
+                    description="Gestão de estoque em desenvolvimento"
+                  />
+                }
+              />
+              <Route
+                path="/dashboard/:companyIndex/pedidos"
+                element={
+                  <UnderConstruction
+                    title="Pedidos"
+                    description="Gestão de pedidos em desenvolvimento"
+                  />
+                }
+              />
+              <Route
+                path="/dashboard/:companyIndex/estatisticas"
+                element={
+                  <UnderConstruction
+                    title="Estatísticas"
+                    description="Análise de dados em desenvolvimento"
+                  />
+                }
+              />
+              <Route
+                path="/dashboard/:companyIndex/perfil"
+                element={
+                  <UnderConstruction
+                    title="Perfil"
+                    description="Gestão de perfil em desenvolvimento"
+                  />
+                }
               />
             </Route>
           </Route>

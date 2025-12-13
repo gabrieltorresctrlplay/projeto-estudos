@@ -1,120 +1,123 @@
-import { Plus } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useCompanyContext } from '@/contexts/CompanyContext'
+import type { User as FirebaseUser } from 'firebase/auth'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { authService } from '@/lib/auth'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { CompanyOverview } from '@/components/dashboard/CompanyOverview'
+import { EmptyCompanyState } from '@/components/dashboard/EmptyCompanyState'
 
 export default function Dashboard() {
-  const user = authService.getCurrentUser()
+  const navigate = useNavigate()
+  const { companyIndex } = useParams<{ companyIndex?: string }>()
+  const [user, setUser] = useState<FirebaseUser | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
 
+  useEffect(() => {
+    const unsubscribe = authService.onAuthStateChanged((currentUser) => {
+      setUser(currentUser)
+      setAuthLoading(false)
+    })
+    return () => unsubscribe()
+  }, [])
+
+  const {
+    companies,
+    selectedCompany,
+    isLoading: companiesLoading,
+    createCompany,
+    selectCompany,
+    pendingCompanyId,
+  } = useCompanyContext()
+
+  // Wrapper to handle company creation and navigation
+  const handleCreateCompany = async (name: string): Promise<boolean> => {
+    const newCompanyId = await createCompany(name)
+    return newCompanyId !== null
+  }
+
+  // Navigate to new company when it appears in the list
+  useEffect(() => {
+    if (pendingCompanyId && companies.length > 0) {
+      const newIndex = companies.findIndex((c) => c.id === pendingCompanyId)
+      if (newIndex !== -1) {
+        navigate(`/dashboard/${newIndex}`, { replace: true })
+      }
+    }
+  }, [companies, pendingCompanyId, navigate])
+
+  // Redirect logic when companies load or URL changes
+  useEffect(() => {
+    if (authLoading || companiesLoading) return
+
+    // If no companies, don't redirect
+    if (companies.length === 0) return
+
+    // Parse index from URL
+    const index = companyIndex ? parseInt(companyIndex, 10) : null
+
+    // If no index in URL or invalid index, redirect to first company (index 0)
+    if (index === null || isNaN(index) || index < 0 || index >= companies.length) {
+      navigate('/dashboard/0', { replace: true })
+      return
+    }
+
+    // Get company at this index
+    const targetCompany = companies[index]
+
+    // If selected company doesn't match the index, update selection
+    if (!selectedCompany || selectedCompany.id !== targetCompany.id) {
+      selectCompany(targetCompany.id)
+    }
+  }, [
+    companyIndex,
+    companies,
+    selectedCompany,
+    authLoading,
+    companiesLoading,
+    navigate,
+    selectCompany,
+  ])
+
+  // Show loading while checking auth or loading companies
+  if (authLoading || companiesLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  // Show empty state if no company exists
+  if (companies.length === 0) {
+    return <EmptyCompanyState onCreateCompany={handleCreateCompany} />
+  }
+
+  // Show loading if we're redirecting or syncing
+  const index = companyIndex ? parseInt(companyIndex, 10) : null
+  const isValidIndex = index !== null && !isNaN(index) && index >= 0 && index < companies.length
+  const targetCompany = isValidIndex ? companies[index] : null
+
+  if (!selectedCompany || !targetCompany || selectedCompany.id !== targetCompany.id) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  // Show company overview
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground">
-            Bem-vindo de volta, {user?.displayName || user?.email?.split('@')[0]}.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> Novo Projeto
-          </Button>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Página Inicial</h2>
+        <p className="text-muted-foreground">
+          Bem-vindo de volta, {user?.displayName || user?.email?.split('@')[0]}.
+        </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="bg-card/50 border-primary/10 hover:border-primary/30 backdrop-blur-xl transition-colors">
-          <CardHeader>
-            <CardTitle>Visão Geral</CardTitle>
-            <CardDescription>Resumo da sua conta</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="bg-muted/50 flex items-center justify-between rounded p-2">
-                <span className="text-sm">Status</span>
-                <span className="rounded-full border border-[hsl(var(--chart-1)_/_0.3)] bg-[hsl(var(--chart-1)_/_0.1)] px-2 py-1 text-xs font-medium text-[hsl(var(--chart-1))]">
-                  Ativo
-                </span>
-              </div>
-              <div className="bg-muted/50 flex items-center justify-between rounded p-2">
-                <span className="text-sm">Plano</span>
-                <span className="text-xs font-medium">Free Tier</span>
-              </div>
-              <div className="bg-muted/50 flex items-center justify-between rounded p-2">
-                <span className="text-sm">Membros</span>
-                <span className="text-xs font-medium">1</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card/50 border-primary/10 hover:border-primary/30 backdrop-blur-xl transition-colors">
-          <CardHeader>
-            <CardTitle>Atividade Recente</CardTitle>
-            <CardDescription>Últimas ações no sistema</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center space-y-2 py-4 text-center">
-              <p className="text-muted-foreground text-sm">Nenhuma atividade recente.</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card/50 border-primary/10 hover:border-primary/30 backdrop-blur-xl transition-colors">
-          <CardHeader>
-            <CardTitle>Acesso Rápido</CardTitle>
-            <CardDescription>Atalhos do sistema</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-2">
-            <Button
-              variant="secondary"
-              className="w-full justify-start"
-            >
-              Gerenciar Perfil
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-            >
-              Ver Documentação
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Example Chart Section Area */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="bg-card/50 border-primary/10 col-span-4 backdrop-blur-xl">
-          <CardHeader>
-            <CardTitle>Analytics</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <div className="bg-muted/20 flex h-[200px] items-center justify-center rounded-md border border-dashed">
-              <p className="text-muted-foreground text-sm">Gráfico de Visitas (Em breve)</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card/50 border-primary/10 col-span-3 backdrop-blur-xl">
-          <CardHeader>
-            <CardTitle>Equipe</CardTitle>
-            <CardDescription>Membros online agora</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="bg-primary/20 text-primary flex size-8 items-center justify-center rounded-full text-xs font-bold">
-                  VC
-                </div>
-                <div>
-                  <p className="text-sm leading-none font-medium">Você</p>
-                  <p className="text-muted-foreground text-xs">Online</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <CompanyOverview company={selectedCompany} />
     </div>
   )
 }
