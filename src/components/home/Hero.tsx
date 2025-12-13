@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 
 /**
  * Hero section component for the home page
+ * Compact and responsive for fullscreen layout
  */
 export function Hero() {
   const { containerVariants, itemVariants } = useAnimationVariants()
@@ -15,13 +16,13 @@ export function Hero() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6"
+      className="space-y-3 md:space-y-6"
     >
       <motion.h1
         variants={itemVariants}
-        className="from-foreground to-foreground/50 bg-linear-to-br bg-clip-text text-5xl font-extrabold tracking-tight text-balance text-transparent md:text-7xl"
+        className="from-foreground to-foreground/50 bg-linear-to-br bg-clip-text text-3xl font-extrabold tracking-tight text-balance text-transparent sm:text-5xl md:text-6xl lg:text-7xl"
       >
-        Potencialize sua <br />
+        Potencialize sua <br className="hidden sm:block" />
         <span className="from-primary to-chart-3 bg-linear-to-r bg-clip-text text-transparent">
           produtividade global.
         </span>
@@ -29,7 +30,7 @@ export function Hero() {
 
       <motion.p
         variants={itemVariants}
-        className="text-muted-foreground mx-auto max-w-2xl text-lg text-balance md:text-xl"
+        className="text-muted-foreground mx-auto max-w-2xl text-sm text-balance sm:text-lg md:text-xl"
       >
         A plataforma completa para escalar operações, otimizar recursos e conectar equipes em tempo
         real. Simples, seguro e eficiente.
@@ -37,19 +38,19 @@ export function Hero() {
 
       <motion.div
         variants={itemVariants}
-        className="flex flex-wrap justify-center gap-4 pt-4"
+        className="flex flex-col justify-center gap-2 pt-2 sm:flex-row sm:gap-4 sm:pt-4"
       >
         <Button
           size="lg"
-          className="h-12 rounded-full px-8 text-base shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+          className="h-10 rounded-full px-6 text-sm shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:h-12 sm:px-8 sm:text-base"
           aria-label="Começar teste grátis de 14 dias"
         >
-          Começar Teste Grátis <ArrowRight className="ml-2 size-5" />
+          Começar Teste Grátis <ArrowRight className="ml-2 size-4 sm:size-5" />
         </Button>
         <Button
           size="lg"
           variant="outline"
-          className="h-12 rounded-full px-8 text-base"
+          className="border-border h-11 rounded-full px-6 text-sm sm:h-12 sm:px-8 sm:text-base"
           aria-label="Agendar conversa com equipe de vendas"
         >
           Falar com Vendas

@@ -10,7 +10,7 @@ export const AnimatedBlurBackground = () => {
 
   return (
     <div
-      className="bg-background pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      className="bg-background pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       aria-hidden="true"
     >
       {/* Blob 1 - Primary */}

@@ -8,6 +8,7 @@ interface FeatureCardProps {
 
 /**
  * Individual feature card component with hover animations
+ * Compact design for fullscreen responsive layout
  */
 export function FeatureCard({ feature, index }: FeatureCardProps) {
   const Icon = feature.icon
@@ -19,16 +20,16 @@ export function FeatureCard({ feature, index }: FeatureCardProps) {
       viewport={{ once: true }}
       transition={{ delay: index * 0.1 }}
       whileHover={{ y: -5 }}
-      className="bg-card/50 cursor-default rounded-2xl border p-6 shadow-sm backdrop-blur-sm transition-all hover:shadow-md"
+      className="bg-card/50 cursor-default rounded-xl border p-3 shadow-sm backdrop-blur-sm transition-all hover:shadow-md md:rounded-2xl md:p-6"
     >
       <div
-        className="bg-primary/10 text-primary mb-4 flex size-12 items-center justify-center rounded-full"
+        className="bg-primary/10 text-primary mb-2 flex size-8 items-center justify-center rounded-full md:mb-4 md:size-12"
         aria-hidden="true"
       >
-        <Icon className="size-6" />
+        <Icon className="size-4 md:size-6" />
       </div>
-      <h3 className="mb-2 text-xl font-semibold">{feature.title}</h3>
-      <p className="text-muted-foreground">{feature.description}</p>
+      <h3 className="mb-1 text-base font-semibold md:mb-2 md:text-xl">{feature.title}</h3>
+      <p className="text-muted-foreground text-xs md:text-base">{feature.description}</p>
     </motion.article>
   )
 }
