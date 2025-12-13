@@ -1,4 +1,4 @@
-# oiee
+# NerfasInc
 
 > 🔥 **YOLOMODE ATIVADO** - Repositório de testes com auto-execução total! [Saiba mais](docs/YOLOMODE.md)
 
