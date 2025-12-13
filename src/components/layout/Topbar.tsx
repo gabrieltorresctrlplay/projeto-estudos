@@ -26,7 +26,7 @@ export function Topbar() {
             <img
               src={logo}
               alt=""
-              className="size-5"
+              className="size-5 brightness-0 invert dark:brightness-100 dark:invert-0"
             />
           </div>
           {COMPANY.name}
