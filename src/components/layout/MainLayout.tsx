@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 
-import { AnimatedBlurBackground } from '@/components/ui/animated-blur-background'
+import { ConcreteBackground } from '@/components/ui/concrete-background'
 import { ThemeProvider } from '@/components/theme/theme-provider'
 
 import { Footer } from './Footer'
@@ -17,8 +17,8 @@ export function MainLayout({ children }: MainLayoutProps) {
       storageKey="vite-ui-theme"
     >
       <div className="text-foreground relative flex h-screen flex-col overflow-hidden transition-none">
-        {/* Animated Blur Background - Always visible */}
-        <AnimatedBlurBackground />
+        {/* Concrete Texture Background */}
+        <ConcreteBackground />
 
         {/* Static Grid Overlay */}
         <div

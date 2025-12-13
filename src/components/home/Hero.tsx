@@ -22,10 +22,10 @@ export const Hero = memo(function Hero() {
     >
       <motion.h1
         variants={itemVariants}
-        className="from-foreground to-foreground/50 bg-linear-to-br bg-clip-text text-3xl font-extrabold tracking-tight text-balance text-transparent sm:text-5xl md:text-6xl lg:text-7xl"
+        className="text-foreground text-3xl font-extrabold tracking-tight text-balance sm:text-5xl md:text-6xl lg:text-7xl"
       >
         Potencialize sua <br className="hidden sm:block" />
-        <span className="from-primary to-chart-3 bg-linear-to-r bg-clip-text text-transparent">
+        <span className="from-primary to-muted-foreground inline-block bg-linear-to-r bg-clip-text leading-relaxed text-transparent">
           produtividade global.
         </span>
       </motion.h1>
@@ -51,14 +51,6 @@ export const Hero = memo(function Hero() {
           <Link to="/register">
             Começar Teste Grátis <ArrowRight className="ml-2 size-4 sm:size-5" />
           </Link>
-        </Button>
-        <Button
-          size="lg"
-          variant="outline"
-          className="border-border h-11 rounded-full px-6 text-sm sm:h-12 sm:px-8 sm:text-base"
-          aria-label="Agendar conversa com equipe de vendas"
-        >
-          Falar com Vendas
         </Button>
       </motion.div>
     </motion.div>

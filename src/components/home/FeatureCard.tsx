@@ -20,7 +20,8 @@ export const FeatureCard = memo(function FeatureCard({ feature, index }: Feature
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1 }}
-      whileHover={{ y: -5 }}
+      animate={{ y: 0, transition: { type: 'tween', duration: 0.2 } }}
+      whileHover={{ y: -5, transition: { type: 'tween', duration: 0.2 } }}
       className="bg-card/50 cursor-default rounded-xl border p-3 shadow-sm backdrop-blur-sm transition-all hover:shadow-md md:rounded-2xl md:p-6"
     >
       <div

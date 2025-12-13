@@ -70,4 +70,4 @@
 
 ---
 
-**Última atualização**: 12/12/2025
+**Última atualização**: 13/12/2025

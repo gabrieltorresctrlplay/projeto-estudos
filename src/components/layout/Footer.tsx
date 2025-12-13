@@ -5,8 +5,8 @@ import { COMPANY } from '@/constants'
  */
 export function Footer() {
   return (
-    <footer className="bg-muted/50 border-border mt-auto w-full border-t py-6">
-      <div className="text-muted-foreground container mx-auto flex items-center justify-between px-4 text-sm">
+    <footer className="bg-muted/87 border-border mt-auto w-full border-t">
+      <div className="text-muted-foreground flex h-16 items-center justify-between px-4 text-sm">
         <p>
           © {COMPANY.year} {COMPANY.name}. Todos os direitos reservados.
         </p>

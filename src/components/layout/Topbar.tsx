@@ -39,9 +39,9 @@ export function Topbar() {
   }
 
   return (
-    <header className="bg-muted/50 border-border sticky top-0 z-50 w-full border-b backdrop-blur-md">
+    <header className="bg-muted/50 border-border sticky top-0 z-50 w-full border-b">
       <nav
-        className="container mx-auto flex h-16 items-center justify-between px-4"
+        className="flex h-16 items-center justify-between px-4"
         aria-label="Navegação principal"
       >
         <Link

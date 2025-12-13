@@ -3,10 +3,7 @@ import type { NavLink } from '@/types'
 /**
  * Navigation links for the top bar
  */
-export const NAV_LINKS: NavLink[] = [
-  { label: 'Soluções', href: '#solucoes' },
-  { label: 'Preços', href: '#precos' },
-]
+export const NAV_LINKS: NavLink[] = []
 
 /**
  * Company information

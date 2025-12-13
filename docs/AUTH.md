@@ -1,274 +1,180 @@
 # 🔐 Guia de Autenticação Firebase
 
-## 📋 Configuração Inicial no Console Firebase
+Guia conciso para implementar autenticação Firebase no projeto.
+
+---
+
+## 📋 Configuração no Console Firebase
 
 ### 1. Ativar Métodos de Autenticação
 
-1. Acesse: https://console.firebase.google.com/project/projeto-estudos-b4fcf/authentication
-2. Clique em **"Get Started"** (se primeira vez)
-3. Vá em **"Sign-in method"**
+**Link:** https://console.firebase.google.com/project/projeto-estudos-b4fcf/authentication
 
-#### Email/Senha
+**Email/Senha:**
 
-1. Clique em **"Email/Password"**
-2. **Enable** → Ativar
-3. Salvar
+- Clique em "Email/Password" → Enable → Salvar
 
-#### Google Sign-In
+**Google Sign-In:**
 
-1. Clique em **"Google"**
-2. **Enable** → Ativar
-3. **Project support email** → Selecione seu email
-4. Salvar
+- Clique em "Google" → Enable → Selecione email de suporte → Salvar
 
-### 2. Configurar Domínios Autorizados
+### 2. Domínios Autorizados
 
-1. Em **"Settings"** → **"Authorized domains"**
-2. Adicione seus domínios:
-   - `localhost` (já vem por padrão)
-   - `projeto-estudos-b4fcf.web.app` (após deploy)
-   - Seu domínio customizado (se tiver)
+Em "Settings" → "Authorized domains", adicione:
+
+- `localhost` (já vem por padrão)
+- `projeto-estudos-b4fcf.web.app`
 
 ---
 
-## 💻 Usando Autenticação no Código
+## 💻 API de Autenticação
 
-### Importar Serviços
+O projeto possui serviços prontos em [`src/lib/auth.ts`](file:///c:/Users/gabri/Desktop/oiee/src/lib/auth.ts).
+
+### Métodos Disponíveis
 
 ```typescript
 import { authService } from '@/lib'
+
+// Criar conta
+await authService.signUpWithEmail(email, password)
+
+// Login com email
+await authService.signInWithEmail(email, password)
+
+// Login com Google
+await authService.signInWithGoogle()
+
+// Logout
+await authService.signOut()
+
+// Verificar usuário atual
+authService.getCurrentUser()
+
+// Observer de mudanças
+authService.onAuthStateChanged(callback)
 ```
 
-### 1. Criar Conta (Email/Senha)
+### Exemplo: Login Component
+
+Veja implementação completa em:
+
+- [`src/pages/auth/Login.tsx`](file:///c:/Users/gabri/Desktop/oiee/src/pages/auth/Login.tsx)
+- [`src/pages/auth/Register.tsx`](file:///c:/Users/gabri/Desktop/oiee/src/pages/auth/Register.tsx)
+
+---
+
+## 🛡️ Rotas Protegidas
+
+O projeto possui componentes de proteção de rotas:
+
+**ProtectedRoute** - Apenas usuários autenticados:
 
 ```typescript
-const handleSignUp = async (email: string, password: string) => {
-  const { user, error } = await authService.signUpWithEmail(email, password)
-
-  if (error) {
-    console.error('Erro ao criar conta:', error.message)
-    return
-  }
-
-  console.log('Conta criada!', user)
-  // Redirecionar para dashboard, etc
-}
+// Ver: src/components/auth/ProtectedRoute.tsx
+<Route path="/dashboard" element={
+  <ProtectedRoute>
+    <Dashboard />
+  </ProtectedRoute>
+} />
 ```
 
-### 2. Login (Email/Senha)
+**PublicOnlyRoute** - Apenas visitantes (redireciona autenticados):
 
 ```typescript
-const handleSignIn = async (email: string, password: string) => {
-  const { user, error } = await authService.signInWithEmail(email, password)
-
-  if (error) {
-    console.error('Erro ao fazer login:', error.message)
-    return
-  }
-
-  console.log('Login realizado!', user)
-}
-```
-
-### 3. Login com Google
-
-```typescript
-const handleGoogleSignIn = async () => {
-  const { user, error } = await authService.signInWithGoogle()
-
-  if (error) {
-    console.error('Erro no login Google:', error.message)
-    return
-  }
-
-  console.log('Login Google realizado!', user)
-}
-```
-
-### 4. Logout
-
-```typescript
-const handleSignOut = async () => {
-  const { error } = await authService.signOut()
-
-  if (error) {
-    console.error('Erro ao fazer logout:', error.message)
-    return
-  }
-
-  console.log('Logout realizado!')
-  // Redirecionar para login
-}
-```
-
-### 5. Verificar Usuário Logado
-
-```typescript
-import { useEffect, useState } from 'react'
-import { authService } from '@/lib'
-import type { User } from 'firebase/auth'
-
-function App() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    // Observer de autenticação
-    const unsubscribe = authService.onAuthStateChanged((currentUser) => {
-      setUser(currentUser)
-      setLoading(false)
-    })
-
-    // Cleanup
-    return () => unsubscribe()
-  }, [])
-
-  if (loading) {
-    return <div>Carregando...</div>
-  }
-
-  if (!user) {
-    return <LoginPage />
-  }
-
-  return <Dashboard user={user} />
-}
+// Ver: src/components/auth/PublicOnlyRoute.tsx
+<Route path="/login" element={
+  <PublicOnlyRoute>
+    <Login />
+  </PublicOnlyRoute>
+} />
 ```
 
 ---
 
-## 🛡️ Proteger Rotas
-
-### Exemplo com React Router
-
-```typescript
-import { Navigate } from 'react-router-dom'
-import { authService } from '@/lib'
-
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const user = authService.getCurrentUser()
-
-  if (!user) {
-    return <Navigate to="/login" replace />
-  }
-
-  return <>{children}</>
-}
-
-// Uso
-<Route
-  path="/dashboard"
-  element={
-    <ProtectedRoute>
-      <Dashboard />
-    </ProtectedRoute>
-  }
-/>
-```
-
----
-
-## 📊 Firestore com Autenticação
+## 📊 Integração com Firestore
 
 ### Salvar Dados do Usuário
 
 ```typescript
 import { firestoreService } from '@/lib'
 
-const saveUserProfile = async (user: User) => {
-  const { error } = await firestoreService.addDocument('users', {
-    uid: user.uid,
-    email: user.email,
-    displayName: user.displayName,
-    photoURL: user.photoURL,
-    createdAt: new Date().toISOString(),
-  })
-
-  if (error) {
-    console.error('Erro ao salvar perfil:', error)
-  }
-}
+// Criar perfil após registro
+await firestoreService.addDocument('users', {
+  uid: user.uid,
+  email: user.email,
+  displayName: user.displayName,
+  createdAt: new Date().toISOString(),
+})
 ```
 
-### Buscar Dados do Usuário
+### Buscar Dados
 
 ```typescript
 import { firestoreService, where } from '@/lib'
 
-const getUserProfile = async (uid: string) => {
-  const { data, error } = await firestoreService.getDocuments('users', where('uid', '==', uid))
-
-  if (error) {
-    console.error('Erro ao buscar perfil:', error)
-    return null
-  }
-
-  return data?.[0] || null
-}
+// Buscar por UID
+const { data } = await firestoreService.getDocuments('users', where('uid', '==', userId))
 ```
+
+**API completa:** [`src/lib/firestore.ts`](file:///c:/Users/gabri/Desktop/oiee/src/lib/firestore.ts)
 
 ---
 
-## 🔒 Regras de Segurança Firestore
+## 🔒 Regras de Segurança
 
-Configure em: https://console.firebase.google.com/project/projeto-estudos-b4fcf/firestore/rules
+**Arquivo:** [`firestore.rules`](file:///c:/Users/gabri/Desktop/oiee/firestore.rules)
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permitir leitura/escrita apenas para usuários autenticados
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-
-    // Coleção pública (apenas leitura)
-    match /public/{document} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
   }
 }
 ```
 
----
-
-## ⚠️ Tratamento de Erros Comuns
-
-```typescript
-const handleAuthError = (error: Error) => {
-  const errorCode = (error as any).code
-
-  switch (errorCode) {
-    case 'auth/email-already-in-use':
-      return 'Este email já está em uso'
-    case 'auth/invalid-email':
-      return 'Email inválido'
-    case 'auth/weak-password':
-      return 'Senha muito fraca (mínimo 6 caracteres)'
-    case 'auth/user-not-found':
-      return 'Usuário não encontrado'
-    case 'auth/wrong-password':
-      return 'Senha incorreta'
-    case 'auth/popup-closed-by-user':
-      return 'Login cancelado'
-    default:
-      return 'Erro ao autenticar. Tente novamente.'
-  }
-}
-```
+**⚠️ IMPORTANTE:** Regras atuais expiram em 10/01/2026. Configure regras de produção antes!
 
 ---
 
-## 📝 Checklist de Configuração
+## ⚠️ Tratamento de Erros
 
-- [ ] Ativar Email/Password no Console Firebase
-- [ ] Ativar Google Sign-In no Console Firebase
-- [ ] Configurar domínios autorizados
-- [ ] Configurar regras de segurança Firestore
-- [ ] Testar login local
-- [ ] Testar login em produção (após deploy)
+Principais erros e mensagens:
+
+| Código                      | Mensagem                              |
+| --------------------------- | ------------------------------------- |
+| `auth/email-already-in-use` | Este email já está em uso             |
+| `auth/invalid-email`        | Email inválido                        |
+| `auth/weak-password`        | Senha muito fraca (mín. 6 caracteres) |
+| `auth/user-not-found`       | Usuário não encontrado                |
+| `auth/wrong-password`       | Senha incorreta                       |
+| `auth/popup-closed-by-user` | Login cancelado                       |
+
+**Implementação:** Ver tratamento de erros em [`Login.tsx`](file:///c:/Users/gabri/Desktop/oiee/src/pages/auth/Login.tsx) e [`Register.tsx`](file:///c:/Users/gabri/Desktop/oiee/src/pages/auth/Register.tsx)
 
 ---
 
-**Última atualização**: 12/12/2025
+## 📝 Checklist
+
+- [x] Email/Password ativado no Console
+- [x] Google Sign-In ativado no Console
+- [x] Domínios autorizados configurados
+- [x] Regras de segurança Firestore (⚠️ temporárias)
+- [x] Páginas de Login/Register criadas
+- [x] Rotas protegidas implementadas
+- [ ] Testes em produção
+
+---
+
+## 🔗 Links Úteis
+
+- [Console Firebase Auth](https://console.firebase.google.com/project/projeto-estudos-b4fcf/authentication)
+- [Firestore Rules](https://console.firebase.google.com/project/projeto-estudos-b4fcf/firestore/rules)
+- [Documentação Firebase Auth](https://firebase.google.com/docs/auth)
+
+---
+
+**Última atualização**: 13/12/2025

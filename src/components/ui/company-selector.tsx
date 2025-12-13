@@ -50,7 +50,7 @@ export function CompanySelector({
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="border-border/40 bg-background/50 hover:bg-accent flex items-center gap-2"
+            className="bg-background/50 hover:bg-accent flex items-center gap-2"
             disabled={isLoading}
           >
             <Building2 className="h-4 w-4" />

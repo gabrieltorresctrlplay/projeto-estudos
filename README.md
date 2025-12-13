@@ -6,13 +6,33 @@ Projeto base minimalista com **Vite + React + TypeScript + Tailwind CSS v4 + Fir
 
 ## 🚀 Stack Tecnológica
 
+### Core
+
 - **[Vite](https://vite.dev/)** v7.2.4 - Build tool ultrarrápido
 - **[React](https://react.dev/)** v19.2.0 - Biblioteca UI
-- **[React Router](https://reactrouter.com/)** v7 - Navegação
-- **[Framer Motion](https://www.framer.com/motion/)** - Animações
 - **[TypeScript](https://www.typescriptlang.org/)** v5.9.3 - Tipagem estática
+- **[React Router](https://reactrouter.com/)** v7.10.1 - Navegação
+
+### Styling & UI
+
 - **[Tailwind CSS](https://tailwindcss.com/)** v4.1.18 - Framework CSS utility-first
+- **[shadcn/ui](https://ui.shadcn.com/)** - Componentes reutilizáveis (16 instalados)
+- **[Radix UI](https://www.radix-ui.com/)** - Primitives acessíveis (6 instalados)
+- **[Lucide Icons](https://lucide.dev/)** v0.561.0 - Biblioteca de ícones
+- **[Framer Motion](https://www.framer.com/motion/)** v12.23.26 - Animações
+
+### Backend & Services
+
 - **[Firebase](https://firebase.google.com/)** v12.6.0 - Backend as a Service
+  - Authentication (Email/Senha + Google)
+  - Firestore Database
+  - Hosting
+
+### Utilities
+
+- **[class-variance-authority](https://cva.style/docs)** - Variantes de componentes
+- **[tailwind-merge](https://github.com/dcastil/tailwind-merge)** - Merge de classes Tailwind
+- **[clsx](https://github.com/lukeed/clsx)** - Conditional classNames
 - **[Prettier](https://prettier.io/)** v3.7.4 - Formatação de código
 
 ## 📦 Serviços Firebase
@@ -28,14 +48,51 @@ Projeto base minimalista com **Vite + React + TypeScript + Tailwind CSS v4 + Fir
 - ✅ Projeto Vite inicializado com React + TypeScript
 - ✅ Tailwind CSS v4 com Design System (OKLCH colors)
 - ✅ Firebase configurado (Auth + Firestore + Hosting)
-- ✅ **React Router** configurado + Aliases (`@/`)
-- ✅ **Landing Page** (Home) com Framer Motion e UI Enterprise
+- ✅ **React Router v7** configurado + Aliases (`@/`)
+- ✅ **shadcn/ui** configurado (New York style)
+- ✅ **Radix UI** primitives instalados
 - ✅ Prettier com ordenação de imports e classes Tailwind
 - ✅ **Arquitetura Refatorada** - Código modular e escalável
 - ✅ **Custom Hooks** para animações e acessibilidade
 - ✅ **TypeScript Types** centralizados
 - ✅ **Lazy Loading** com React Suspense
 - ✅ **Acessibilidade (a11y)** - ARIA labels e reduced motion
+
+### ✅ Features Implementadas
+
+**Autenticação:**
+
+- ✅ Páginas de Login/Register completas
+- ✅ Auth com Email/Senha + Google Sign-In
+- ✅ Rotas protegidas (ProtectedRoute)
+- ✅ Rotas públicas (PublicOnlyRoute)
+
+**Dashboard:**
+
+- ✅ Sidebar oficial shadcn/ui (collapsible)
+- ✅ Sistema de gerenciamento de empresas
+- ✅ Context API (CompanyContext)
+- ✅ Multi-company support
+- ✅ Páginas: Dashboard, Queue, Settings
+
+**UI Components (shadcn/ui):**
+
+- ✅ 16+ componentes instalados e configurados
+- ✅ Avatar, Button, Card, Dialog
+- ✅ Dropdown Menu, Input, Label
+- ✅ Separator, Sheet, Sidebar
+- ✅ Skeleton, Tooltip
+- ✅ Company Selector (custom)
+
+**Theme:**
+
+- ✅ Dark/Light mode toggle
+- ✅ Theme provider com Context API
+- ✅ Suporte a prefers-color-scheme
+- ✅ Design System OKLCH completo
+
+**Deployment:**
+
 - ✅ **DEPLOYED**: https://projeto-estudos-b4fcf.web.app/
 
 ### 📁 Estrutura de Arquivos
@@ -43,63 +100,48 @@ Projeto base minimalista com **Vite + React + TypeScript + Tailwind CSS v4 + Fir
 ```
 projeto-estudos/
 ├── .agent/               # 🤖 Configurações da IA
-│   ├── rules/
-│   │   └── rules.md      # Regras para Gemini AI
-│   └── workflows/
-│       ├── deploy.md     # 🚀 /deploy
-│       ├── end.md        # 💾 /end
-│       └── start.md      # 🎬 /start
+│   ├── rules/            # Regras para Gemini AI
+│   └── workflows/        # /start, /deploy, /end
 ├── docs/                 # 📚 Documentação
-│   ├── sessions/         # Resumos automáticos (IA)
-│   ├── transcripts/      # Conversas exportadas (manual)
-│   ├── AUTH.md          # Guia de autenticação
-│   ├── DEPLOY.md        # Guia de deploy
-│   ├── LINKS.md         # Links úteis
-│   ├── WORKFLOWS.md     # Workflows disponíveis
-│   ├── README.md        # Índice da documentação
-│   └── SETUP.md         # Setup e próximos passos
+│   ├── sessions/         # Resumos automáticos
+│   ├── AUTH.md           # Guia de autenticação
+│   ├── DEPLOY.md         # Guia de deploy
+│   ├── LINKS.md          # Links úteis
+│   └── README.md         # Índice
 ├── src/
-│   ├── components/      # Componentes React
-│   │   ├── home/        # Componentes da Home
-│   │   │   ├── Hero.tsx
-│   │   │   ├── FeatureCard.tsx
-│   │   │   └── FeatureGrid.tsx
-│   │   ├── layout/      # Componentes de layout
-│   │   │   ├── MainLayout.tsx
-│   │   │   ├── Topbar.tsx
-│   │   │   ├── Footer.tsx
-│   │   │   └── Container.tsx
-│   │   ├── ui/          # Componentes UI reutilizáveis
-│   │   │   ├── button.tsx
-│   │   │   ├── dropdown-menu.tsx
-│   │   │   └── loading-spinner.tsx
-│   │   ├── AnimatedBlurBackground.tsx
-│   │   ├── theme-provider.tsx
-│   │   └── mode-toggle.tsx
-│   ├── hooks/           # Custom React Hooks
+│   ├── assets/           # Logo e imagens
+│   ├── components/
+│   │   ├── auth/         # ProtectedRoute, PublicOnlyRoute
+│   │   ├── dashboard/    # CompanyOverview, EmptyCompanyState
+│   │   ├── home/         # Hero, FeatureCard, FeatureGrid
+│   │   ├── layout/
+│   │   │   ├── dashboard/  # AppSidebar, DashboardLayout
+│   │   │   └── ...       # MainLayout, AuthLayout, Topbar, Footer
+│   │   ├── theme/        # ThemeProvider, ModeToggle
+│   │   └── ui/           # 16+ componentes shadcn/ui
+│   │       ├── avatar.tsx, button.tsx, card.tsx
+│   │       ├── dialog.tsx, dropdown-menu.tsx
+│   │       ├── input.tsx, label.tsx
+│   │       ├── separator.tsx, sheet.tsx
+│   │       ├── sidebar.tsx, skeleton.tsx, tooltip.tsx
+│   │       ├── company-selector.tsx
+│   │       └── create-company-dialog.tsx
+│   ├── contexts/         # CompanyContext (Context API)
+│   ├── hooks/            # Custom hooks
 │   │   ├── useAnimationVariants.ts
-│   │   └── useReducedMotion.ts
-│   ├── constants/       # Constantes da aplicação
-│   │   ├── features.ts
-│   │   └── navigation.ts
-│   ├── types/           # TypeScript types
-│   │   └── index.ts
-│   ├── lib/             # Serviços Firebase
-│   │   ├── firebase.ts  # Configuração
-│   │   ├── auth.ts      # Autenticação
-│   │   ├── firestore.ts # Firestore CRUD
-│   │   ├── utils.ts     # Funções utilitárias
-│   │   └── index.ts     # Exports
-│   ├── pages/           # Páginas da aplicação
+│   │   ├── useReducedMotion.ts
+│   │   ├── useCompanies.ts
+│   │   └── use-mobile.ts
+│   ├── constants/        # features, navigation
+│   ├── types/            # TypeScript types
+│   ├── lib/              # Firebase services + utils
+│   ├── pages/
+│   │   ├── auth/         # Login, Register
+│   │   ├── dashboard/    # Dashboard, Queue, UnderConstruction
 │   │   └── Home.tsx
-│   ├── App.tsx
-│   ├── index.css        # Design System + Tailwind
-│   └── main.tsx
-├── .env                 # Variáveis de ambiente
-├── .env.example         # Template
-├── .gitignore           # Git ignore
-├── firebase.json        # Config Firebase Hosting
-├── firestore.rules      # Regras de segurança
+│   └── ...
+├── components.json       # Config shadcn/ui
+├── firebase.json         # Config Firebase
 └── package.json
 ```
 
@@ -121,7 +163,7 @@ Workflows são atalhos para automatizar tarefas comuns:
 - **`/deploy`** - Deploy rápido para Firebase Hosting
 - **`/end`** - Encerrar sessão (atualiza docs + commit + push)
 
-Veja detalhes em **[docs/WORKFLOWS.md](docs/WORKFLOWS.md)**
+Veja detalhes em `.agent/workflows/`
 
 ## 🚦 Como Usar
 
@@ -204,12 +246,64 @@ O projeto inclui um Design System completo com:
 - ✅ Shadows e radius configuráveis
 - ✅ Suporte nativo a dark mode
 
+## 🎨 Componentes shadcn/ui
+
+O projeto usa a biblioteca [shadcn/ui](https://ui.shadcn.com/) com estilo **New York**.
+
+### Instalados (16 componentes)
+
+- **Layout:** Sidebar (oficial), Sheet
+- **Dados:** Avatar, Card, Separator, Skeleton
+- **Forms:** Button, Input, Label, Dialog
+- **Interação:** Dropdown Menu, Tooltip
+- **Custom:** Company Selector, Create Company Dialog
+
+### Configuração
+
+Configurado em `components.json`:
+
+- Style: `new-york`
+- Icon Library: `lucide-react`
+- CSS Variables: Habilitado
+- Base Color: `neutral`
+
+### Adicionar Novos Componentes
+
+```bash
+npx shadcn@latest add [component-name]
+```
+
+## 🏢 Context API
+
+### CompanyContext
+
+Sistema de gerenciamento de empresas usando Context API.
+
+**Arquivo:** `src/contexts/CompanyContext.tsx`
+
+```typescript
+import { useCompanyContext } from '@/contexts/CompanyContext'
+
+function MyComponent() {
+  const {
+    companies, // Lista de empresas do usuário
+    selectedCompany, // Empresa atualmente selecionada
+    isLoading, // Estado de carregamento
+    error, // Erros, se houver
+    createCompany, // Criar nova empresa
+    selectCompany, // Selecionar empresa
+    refreshCompanies, // Recarregar lista
+  } = useCompanyContext()
+}
+```
+
+**Hook:** `src/hooks/useCompanies.ts` - Lógica de CRUD das empresas
+
 ## 📚 Documentação
 
 - **[docs/LINKS.md](docs/LINKS.md)** - Links úteis do projeto
 - **[docs/AUTH.md](docs/AUTH.md)** - Guia completo de autenticação
 - **[docs/DEPLOY.md](docs/DEPLOY.md)** - Guia de deploy Firebase
-- **[docs/SETUP.md](docs/SETUP.md)** - Setup e próximos passos
 
 ## 🔒 Segurança
 
@@ -219,9 +313,13 @@ As regras de segurança do Firestore estão em `firestore.rules`.
 
 ## 📊 Estatísticas
 
-- **Pacotes**: 172
+- **Dependências**: 29 pacotes
+- **Dev Dependencies**: 13 pacotes
+- **Componentes shadcn/ui**: 16
+- **Radix UI Primitives**: 6
+- **Páginas**: 6 (Home, Login, Register, Dashboard, Queue, UnderConstruction)
 - **Build size**: ~193 KB (gzip: ~60 KB)
-- **Tempo de build**: ~1-2 segundos
+- **Tempo de build**: ~4-5 segundos
 
 ## 🌐 Deploy
 
@@ -236,4 +334,4 @@ As regras de segurança do Firestore estão em `firestore.rules`.
 
 ---
 
-**Última atualização**: 12/12/2025
+**Última atualização**: 13/12/2025
