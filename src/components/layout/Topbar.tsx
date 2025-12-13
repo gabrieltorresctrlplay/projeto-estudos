@@ -1,20 +1,51 @@
+import { useEffect, useState } from 'react'
 import { COMPANY, NAV_LINKS } from '@/constants'
+import type { User as FirebaseUser } from 'firebase/auth'
+import { Loader2, LogOut, User } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 
+import { authService } from '@/lib/auth'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { ModeToggle } from '@/components/theme/mode-toggle'
 
 /**
  * Top navigation bar component
  */
 export function Topbar() {
+  const navigate = useNavigate()
+  const [user, setUser] = useState<FirebaseUser | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const unsubscribe = authService.onAuthStateChanged((currentUser) => {
+      setUser(currentUser)
+      setLoading(false)
+    })
+    return () => unsubscribe()
+  }, [])
+
+  const handleLogout = async () => {
+    await authService.signOut()
+    navigate('/login')
+  }
+
   return (
     <header className="bg-muted/50 border-border sticky top-0 z-50 w-full border-b backdrop-blur-md">
       <nav
         className="container mx-auto flex h-16 items-center justify-between px-4"
         aria-label="Navegação principal"
       >
-        <a
-          href="/"
+        <Link
+          to="/"
           className="flex items-center gap-2 text-xl font-bold tracking-tighter transition-opacity hover:opacity-80"
           aria-label={`${COMPANY.name} - Página inicial`}
         >
@@ -32,7 +63,7 @@ export function Topbar() {
             </svg>
           </div>
           {COMPANY.name}
-        </a>
+        </Link>
 
         <div className="flex items-center gap-4">
           <div
@@ -57,12 +88,72 @@ export function Topbar() {
             aria-hidden="true"
           />
 
-          <Button
-            size="sm"
-            aria-label="Acessar conta"
-          >
-            Entrar
-          </Button>
+          {loading ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled
+            >
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </Button>
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src={user.photoURL || undefined}
+                      alt="Avatar"
+                    />
+                    <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-56"
+                align="end"
+                forceMount
+              >
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm leading-none font-medium">
+                      {user.displayName || 'Usuário'}
+                    </p>
+                    <p className="text-muted-foreground text-xs leading-none">{user.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/dashboard"
+                    className="cursor-pointer"
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="cursor-pointer text-red-500 focus:text-red-500"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button
+              size="sm"
+              aria-label="Acessar conta"
+              asChild
+            >
+              <Link to="/login">Entrar</Link>
+            </Button>
+          )}
 
           <ModeToggle />
         </div>

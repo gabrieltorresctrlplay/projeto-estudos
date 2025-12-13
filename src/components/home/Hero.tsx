@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { useAnimationVariants } from '@/hooks'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 
@@ -45,8 +46,11 @@ export const Hero = memo(function Hero() {
           size="lg"
           className="h-10 rounded-full px-6 text-sm shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:h-12 sm:px-8 sm:text-base"
           aria-label="Começar teste grátis de 14 dias"
+          asChild
         >
-          Começar Teste Grátis <ArrowRight className="ml-2 size-4 sm:size-5" />
+          <Link to="/register">
+            Começar Teste Grátis <ArrowRight className="ml-2 size-4 sm:size-5" />
+          </Link>
         </Button>
         <Button
           size="lg"
