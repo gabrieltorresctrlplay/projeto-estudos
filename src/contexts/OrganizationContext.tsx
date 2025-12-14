@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { MemberRole, Organization, OrganizationMember } from '@/types'
 import type { User as FirebaseUser } from 'firebase/auth'
 
@@ -38,7 +38,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
   const [error, setError] = useState<Error | null>(null)
 
   // Load memberships when user changes
-  const loadMemberships = async (userId: string) => {
+  const loadMemberships = useCallback(async (userId: string) => {
     try {
       setIsLoading(true)
       setError(null)
@@ -72,7 +72,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   // Listen to auth state changes
   useEffect(() => {
@@ -110,136 +110,155 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     })
 
     return () => unsubscribe()
-  }, [])
+  }, [loadMemberships])
 
   // Set current organization
-  const setCurrentOrganization = (orgId: string) => {
-    const membership = memberships.find((m) => m.organizationId === orgId)
+  const setCurrentOrganization = useCallback(
+    (orgId: string) => {
+      const membership = memberships.find((m) => m.organizationId === orgId)
 
-    if (!membership) {
-      console.error('Organization not found in memberships:', orgId)
-      return
-    }
-
-    if (membership.organization) {
-      setCurrentOrganizationState(membership.organization)
-      setCurrentMemberRole(membership.role)
-
-      // Persist to localStorage
-      if (user) {
-        localStorage.setItem(`lastOrgId_${user.uid}`, orgId)
+      if (!membership) {
+        console.error('Organization not found in memberships:', orgId)
+        return
       }
-    }
-  }
+
+      if (membership.organization) {
+        setCurrentOrganizationState(membership.organization)
+        setCurrentMemberRole(membership.role)
+
+        // Persist to localStorage
+        if (user) {
+          localStorage.setItem(`lastOrgId_${user.uid}`, orgId)
+        }
+      }
+    },
+    [memberships, user],
+  )
 
   // Create organization
-  const createOrganization = async (
-    name: string,
-  ): Promise<{ orgId: string | null; error: Error | null }> => {
-    if (!user) {
-      return { orgId: null, error: new Error('User not authenticated') }
-    }
-
-    const { orgId, error } = await organizationService.createOrganization(user.uid, name)
-
-    if (orgId && !error) {
-      // Manually update state to ensure immediate availability (avoid read latency)
-      const newOrg: Organization = {
-        id: orgId,
-        name,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+  const createOrganization = useCallback(
+    async (name: string): Promise<{ orgId: string | null; error: Error | null }> => {
+      if (!user) {
+        return { orgId: null, error: new Error('User not authenticated') }
       }
 
-      const newMembership: OrganizationMember = {
-        id: 'temp-' + Date.now(), // Temporary ID until reload
-        organizationId: orgId,
-        userId: user.uid,
-        role: 'owner',
-        joinedAt: new Date(),
-        organization: newOrg,
+      const { orgId, error } = await organizationService.createOrganization(user.uid, name)
+
+      if (orgId && !error) {
+        // Manually update state to ensure immediate availability (avoid read latency)
+        const newOrg: Organization = {
+          id: orgId,
+          name,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+
+        const newMembership: OrganizationMember = {
+          id: 'temp-' + Date.now(), // Temporary ID until reload
+          organizationId: orgId,
+          userId: user.uid,
+          role: 'owner',
+          joinedAt: new Date(),
+          organization: newOrg,
+        }
+
+        setMemberships((prev) => [...prev, newMembership])
+        setCurrentOrganizationState(newOrg)
+        setCurrentMemberRole('owner')
+        if (user) {
+          localStorage.setItem(`lastOrgId_${user.uid}`, orgId)
+        }
+
+        // Background reload to get real IDs and ensure consistency
+        loadMemberships(user.uid)
       }
 
-      setMemberships((prev) => [...prev, newMembership])
-      setCurrentOrganizationState(newOrg)
-      setCurrentMemberRole('owner')
-      if (user) {
-        localStorage.setItem(`lastOrgId_${user.uid}`, orgId)
-      }
-
-      // Background reload to get real IDs and ensure consistency
-      loadMemberships(user.uid)
-    }
-
-    return { orgId, error }
-  }
+      return { orgId, error }
+    },
+    [user, loadMemberships],
+  )
 
   // Invite member
-  const inviteMember = async (
-    email: string | null,
-    role: 'admin' | 'member',
-  ): Promise<{ token: string | null; error: Error | null }> => {
-    if (!user) {
-      return { token: null, error: new Error('User not authenticated') }
-    }
+  const inviteMember = useCallback(
+    async (
+      email: string | null,
+      role: 'admin' | 'member',
+    ): Promise<{ token: string | null; error: Error | null }> => {
+      if (!user) {
+        return { token: null, error: new Error('User not authenticated') }
+      }
 
-    if (!currentOrganization) {
-      return { token: null, error: new Error('No organization selected') }
-    }
+      if (!currentOrganization) {
+        return { token: null, error: new Error('No organization selected') }
+      }
 
-    // Check if user has permission (owner or admin)
-    if (currentMemberRole !== 'owner' && currentMemberRole !== 'admin') {
-      return { token: null, error: new Error('Insufficient permissions to invite members') }
-    }
+      // Check if user has permission (owner or admin)
+      if (currentMemberRole !== 'owner' && currentMemberRole !== 'admin') {
+        return { token: null, error: new Error('Insufficient permissions to invite members') }
+      }
 
-    return await inviteService.createInvite(currentOrganization.id, email, role, user.uid)
-  }
+      return await inviteService.createInvite(currentOrganization.id, email, role, user.uid)
+    },
+    [user, currentOrganization, currentMemberRole],
+  )
 
   // Accept invite
-  const acceptInvite = async (
-    token: string,
-  ): Promise<{ success: boolean; error: Error | null }> => {
-    if (!user || !user.email) {
-      return { success: false, error: new Error('User not authenticated') }
-    }
+  const acceptInvite = useCallback(
+    async (token: string): Promise<{ success: boolean; error: Error | null }> => {
+      if (!user || !user.email) {
+        return { success: false, error: new Error('User not authenticated') }
+      }
 
-    const { memberId, error } = await inviteService.acceptInvite(token, user.uid, user.email)
+      const { memberId, error } = await inviteService.acceptInvite(token, user.uid, user.email)
 
-    if (memberId && !error) {
-      // Reload memberships to include new org
-      await loadMemberships(user.uid)
-      return { success: true, error: null }
-    }
+      if (memberId && !error) {
+        // Reload memberships to include new org
+        await loadMemberships(user.uid)
+        return { success: true, error: null }
+      }
 
-    return { success: false, error: error || new Error('Failed to accept invite') }
-  }
+      return { success: false, error: error || new Error('Failed to accept invite') }
+    },
+    [user, loadMemberships],
+  )
 
   // Refresh memberships
-  const refreshMemberships = async () => {
+  const refreshMemberships = useCallback(async () => {
     if (user) {
       await loadMemberships(user.uid)
     }
-  }
+  }, [user, loadMemberships])
 
-  return (
-    <OrganizationContext.Provider
-      value={{
-        user,
-        memberships,
-        currentOrganization,
-        currentMemberRole,
-        isLoading,
-        error,
-        setCurrentOrganization,
-        createOrganization,
-        inviteMember,
-        acceptInvite,
-        refreshMemberships,
-      }}
-    >
-      {children}
-    </OrganizationContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      memberships,
+      currentOrganization,
+      currentMemberRole,
+      isLoading,
+      error,
+      setCurrentOrganization,
+      createOrganization,
+      inviteMember,
+      acceptInvite,
+      refreshMemberships,
+    }),
+    [
+      user,
+      memberships,
+      currentOrganization,
+      currentMemberRole,
+      isLoading,
+      error,
+      setCurrentOrganization,
+      createOrganization,
+      inviteMember,
+      acceptInvite,
+      refreshMemberships,
+    ],
   )
+
+  return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>
 }
 
 export function useOrganizationContext() {
