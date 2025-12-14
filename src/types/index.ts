@@ -75,3 +75,21 @@ export interface Invite {
   // Expanded view (with organization data for display)
   organization?: Organization
 }
+
+// ============================================
+// Dashboard & Analytics
+// ============================================
+
+export interface ActivityItem {
+  id: string
+  label: string
+  timestamp: Date
+  amount?: number
+}
+
+export interface DashboardStats {
+  totalRevenue: number
+  activeCustomers: number
+  growthRate: number
+  recentActivityCount: number
+}

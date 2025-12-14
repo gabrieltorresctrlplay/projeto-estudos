@@ -1,36 +1,93 @@
-import type { Company } from '@/types'
+import { useEffect, useState } from 'react'
+import type { ActivityItem, Company, DashboardStats } from '@/types'
 import { Activity, Building2, DollarSign, TrendingUp, Users } from 'lucide-react'
 
+import { dashboardService } from '@/lib/dashboardService'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface CompanyOverviewProps {
   company: Company
 }
 
 export function CompanyOverview({ company }: CompanyOverviewProps) {
-  // Dados fake para demonstração
-  const stats = [
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [activities, setActivities] = useState<ActivityItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadData() {
+      if (!company?.id) return
+
+      setLoading(true)
+      try {
+        const [statsRes, activityRes] = await Promise.all([
+          dashboardService.getDashboardStats(company.id),
+          dashboardService.getRecentActivity(company.id),
+        ])
+
+        if (isMounted) {
+          if (statsRes.data) setStats(statsRes.data)
+          if (activityRes.data) setActivities(activityRes.data)
+        }
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error)
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    loadData()
+
+    return () => {
+      isMounted = false
+    }
+  }, [company.id])
+
+  // Helper to format currency
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value)
+  }
+
+  // Helper to format relative time
+  const formatRelativeTime = (date: Date) => {
+    const rtf = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
+    const now = new Date()
+    const diffInSeconds = (date.getTime() - now.getTime()) / 1000
+
+    if (Math.abs(diffInSeconds) < 60) return rtf.format(Math.round(diffInSeconds), 'second')
+    if (Math.abs(diffInSeconds) < 3600) return rtf.format(Math.round(diffInSeconds / 60), 'minute')
+    if (Math.abs(diffInSeconds) < 86400) return rtf.format(Math.round(diffInSeconds / 3600), 'hour')
+    return rtf.format(Math.round(diffInSeconds / 86400), 'day')
+  }
+
+  const statItems = [
     {
       title: 'Receita Total',
-      value: 'R$ 45.231,89',
-      change: '+20.1% em relação ao mês passado',
+      value: loading ? null : formatCurrency(stats?.totalRevenue || 0),
+      change: 'Lifetime', // We don't have historical data for % change yet
       icon: DollarSign,
     },
     {
       title: 'Clientes Ativos',
-      value: '+2.350',
-      change: '+180 novos este mês',
+      value: loading ? null : (stats?.activeCustomers || 0).toLocaleString('pt-BR'),
+      change: 'Total cadastrados',
       icon: Users,
     },
     {
       title: 'Taxa de Crescimento',
-      value: '+12.5%',
-      change: '+4.5% em relação ao trimestre anterior',
+      value: loading ? null : '0%', // Placeholder until we have historical data
+      change: 'Dados insuficientes',
       icon: TrendingUp,
     },
     {
       title: 'Atividade Recente',
-      value: '573',
+      value: loading ? null : (stats?.recentActivityCount || 0).toString(),
       change: 'Transações nos últimos 7 dias',
       icon: Activity,
     },
@@ -57,16 +114,20 @@ export function CompanyOverview({ company }: CompanyOverviewProps) {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
+        {statItems.map((stat, i) => {
           const Icon = stat.icon
           return (
-            <Card key={stat.title}>
+            <Card key={i}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
                 <Icon className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
+                {loading ? (
+                  <Skeleton className="h-8 w-24" />
+                ) : (
+                  <div className="text-2xl font-bold">{stat.value}</div>
+                )}
                 <p className="text-muted-foreground text-xs">{stat.change}</p>
               </CardContent>
             </Card>
@@ -82,27 +143,40 @@ export function CompanyOverview({ company }: CompanyOverviewProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {[
-              { label: 'Nova venda realizada', time: 'Há 2 horas', amount: 'R$ 1.234,56' },
-              { label: 'Cliente cadastrado', time: 'Há 4 horas', amount: null },
-              { label: 'Pagamento recebido', time: 'Há 1 dia', amount: 'R$ 3.450,00' },
-              { label: 'Produto atualizado', time: 'Há 2 dias', amount: null },
-            ].map((activity, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
-              >
-                <div>
-                  <p className="text-sm font-medium">{activity.label}</p>
-                  <p className="text-muted-foreground text-xs">{activity.time}</p>
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  <Skeleton className="h-4 w-16" />
                 </div>
-                {activity.amount && (
-                  <p className="text-sm font-semibold text-green-600 dark:text-green-400">
-                    {activity.amount}
-                  </p>
-                )}
-              </div>
-            ))}
+              ))
+            ) : activities.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4 text-sm">
+                Nenhuma atividade recente encontrada.
+              </p>
+            ) : (
+              activities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{activity.label}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {formatRelativeTime(activity.timestamp)}
+                    </p>
+                  </div>
+                  {activity.amount && (
+                    <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                      {formatCurrency(activity.amount)}
+                    </p>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
