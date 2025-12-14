@@ -114,7 +114,7 @@ export function AppSidebar() {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">NerfasInc</span>
-                  <span className="truncate text-xs">{isVisitor ? 'Visitante' : 'Enterprise'}</span>
+                  <span className="type-muted truncate text-xs">{isVisitor ? 'Visitante' : 'Enterprise'}</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -260,7 +260,7 @@ export function AppSidebar() {
 
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Deseja sair?</DialogTitle>
+              <DialogTitle className="type-h4">Deseja sair?</DialogTitle>
               <DialogDescription>
                 Você precisará fazer login novamente para acessar sua conta.
               </DialogDescription>

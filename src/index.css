@@ -164,3 +164,28 @@
     @apply outline-ring outline-2 outline-offset-2;
   }
 }
+
+/* Typography Utilities */
+@layer utilities {
+  .type-h1 {
+    @apply text-4xl font-extrabold tracking-tight lg:text-5xl;
+  }
+  .type-h2 {
+    @apply text-3xl font-semibold tracking-tight first:mt-0;
+  }
+  .type-h3 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  .type-h4 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+  .type-body {
+    @apply text-base leading-7;
+  }
+  .type-small {
+    @apply text-sm font-medium leading-none;
+  }
+  .type-muted {
+    @apply text-sm text-muted-foreground;
+  }
+}
