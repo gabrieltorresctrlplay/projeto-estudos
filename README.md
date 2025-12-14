@@ -72,8 +72,10 @@ Projeto base minimalista com **Vite + React + TypeScript + Tailwind CSS v4 + Fir
 - ✅ Sidebar oficial shadcn/ui (collapsible)
 - ✅ Sistema de gerenciamento de empresas
 - ✅ Context API (CompanyContext)
-- ✅ Multi-company support
-- ✅ Páginas: Dashboard, Queue, Settings
+- ✅ Multi-tenant support (Organizations & Memberships)
+- ✅ Páginas: Dashboard, Queue, Settings, Team Members
+- ✅ Invite System (Híbrido: Email + Link Genérico)
+- ✅ Role-based Access Control (Owner, Admin, Member)
 
 **UI Components (shadcn/ui):**
 
@@ -137,10 +139,11 @@ projeto-estudos/
 │   ├── lib/              # Firebase services + utils
 │   ├── pages/
 │   │   ├── auth/         # Login, Register
-│   │   ├── dashboard/    # Dashboard, Queue, UnderConstruction
+│   │   ├── dashboard/    # Dashboard, Queue, TeamMembers
 │   │   └── Home.tsx
 │   └── ...
 ├── components.json       # Config shadcn/ui
+├── firestore.rules       # Regras de segurança Firestore
 ├── firebase.json         # Config Firebase
 └── package.json
 ```
@@ -282,22 +285,20 @@ Sistema de gerenciamento de empresas usando Context API.
 **Arquivo:** `src/contexts/CompanyContext.tsx`
 
 ```typescript
-import { useCompanyContext } from '@/contexts/CompanyContext'
+import { useOrganizationContext } from '@/contexts/OrganizationContext'
 
 function MyComponent() {
   const {
-    companies, // Lista de empresas do usuário
-    selectedCompany, // Empresa atualmente selecionada
-    isLoading, // Estado de carregamento
-    error, // Erros, se houver
-    createCompany, // Criar nova empresa
-    selectCompany, // Selecionar empresa
-    refreshCompanies, // Recarregar lista
-  } = useCompanyContext()
+    currentOrganization, // Organização atual
+    memberships, // Associações do usuário
+    user, // Usuário logado
+    createOrganization, // Criar org
+    inviteMember, // Convidar membro
+  } = useOrganizationContext()
 }
 ```
 
-**Hook:** `src/hooks/useCompanies.ts` - Lógica de CRUD das empresas
+**Hooks:** `useOrganizationContext` - Acesso global ao estado da organização
 
 ## 📚 Documentação
 
@@ -317,7 +318,7 @@ As regras de segurança do Firestore estão em `firestore.rules`.
 - **Dev Dependencies**: 13 pacotes
 - **Componentes shadcn/ui**: 16
 - **Radix UI Primitives**: 6
-- **Páginas**: 6 (Home, Login, Register, Dashboard, Queue, UnderConstruction)
+- **Páginas**: 8 (Home, Login, Register, Onboarding, Generic Invite, Dashboard, Queue, Team)
 - **Build size**: ~193 KB (gzip: ~60 KB)
 - **Tempo de build**: ~4-5 segundos
 
@@ -334,4 +335,4 @@ As regras de segurança do Firestore estão em `firestore.rules`.
 
 ---
 
-**Última atualização**: 13/12/2025
+**Última atualização**: 14/12/2025
