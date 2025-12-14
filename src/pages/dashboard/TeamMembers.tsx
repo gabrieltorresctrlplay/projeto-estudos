@@ -51,7 +51,11 @@ export default function TeamMembers() {
         const { data: invitesData } = await inviteService.getOrganizationInvites(
           currentOrganization.id,
         )
-        setInvites(invitesData || [])
+        // Admin can only see member invites, owner sees all
+        const filteredInvites = isOwner
+          ? invitesData
+          : invitesData?.filter((i) => i.role === 'member')
+        setInvites(filteredInvites || [])
       }
 
       setLoading(false)
