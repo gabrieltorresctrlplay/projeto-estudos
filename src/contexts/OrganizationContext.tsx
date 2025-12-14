@@ -158,7 +158,10 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         return { orgId: null, error: new Error('User not authenticated') }
       }
 
-      const { orgId, memberId, error } = await organizationService.createOrganization(user.uid, name)
+      const { orgId, memberId, error } = await organizationService.createOrganization(
+        user.uid,
+        name,
+      )
 
       if (orgId && memberId && !error) {
         // Manually update state to ensure immediate availability (avoid read latency)

@@ -1,0 +1,48 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e6]:
+    - list [ref=e8]:
+      - listitem [ref=e9]:
+        - link "NerfasInc Visitante" [ref=e10] [cursor=pointer]:
+          - /url: /dashboard/0
+          - img [ref=e12]
+          - generic [ref=e15]:
+            - generic [ref=e16]: NerfasInc
+            - generic [ref=e17]: Visitante
+    - list [ref=e21]:
+      - listitem [ref=e22]:
+        - link "Dashboard" [ref=e23] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e24]
+          - generic [ref=e29]: Dashboard
+      - listitem [ref=e30]:
+        - link "Perfil" [ref=e31] [cursor=pointer]:
+          - /url: /dashboard/perfil
+          - img [ref=e32]
+          - generic [ref=e35]: Perfil
+    - list [ref=e37]:
+      - listitem [ref=e38]:
+        - button "Proprietário Teste T Proprietário Teste test-1765730748364-v2toqm@example.com" [ref=e39]:
+          - generic [ref=e40]:
+            - img "Proprietário Teste" [ref=e41]
+            - generic [ref=e42]: T
+          - generic [ref=e43]:
+            - generic [ref=e44]: Proprietário Teste
+            - generic [ref=e45]: test-1765730748364-v2toqm@example.com
+          - img [ref=e46]
+  - main [ref=e49]:
+    - generic [ref=e50]:
+      - button "Toggle Sidebar" [ref=e51]:
+        - img
+        - generic [ref=e52]: Toggle Sidebar
+      - heading "Dashboard" [level=1] [ref=e54]
+      - button "Selecionar empresa" [ref=e55]:
+        - img
+        - generic [ref=e56]: Selecionar empresa
+        - img
+    - generic [ref=e60]:
+      - status "Carregando conteúdo":
+        - generic [ref=e64]: Carregando...
+```

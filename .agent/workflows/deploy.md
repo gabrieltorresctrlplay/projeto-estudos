@@ -10,13 +10,33 @@ Workflow para fazer deploy rápido do projeto para Firebase Hosting.
 
 ## Passos:
 
-1. Build do projeto
+1. Iniciar Firebase Emulators em background
+
+```bash
+start /B firebase emulators:start --project demo-projeto-estudos
+```
+
+2. Aguardar emuladores iniciarem
+
+```bash
+timeout /t 15
+```
+
+3. Rodar testes E2E
+
+```bash
+npm run test:e2e
+```
+
+4. Parar emuladores (Ctrl+C no terminal do emulator ou fechar)
+
+5. Build do projeto
 
 ```bash
 npm run build
 ```
 
-2. Deploy para Firebase Hosting
+6. Deploy para Firebase Hosting
 
 ```bash
 firebase deploy --only hosting

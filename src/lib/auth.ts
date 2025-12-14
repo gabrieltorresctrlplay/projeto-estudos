@@ -1,4 +1,10 @@
-import { GoogleAuthProvider, signInWithPopup, signOut, type User } from 'firebase/auth'
+import {
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  type User,
+} from 'firebase/auth'
 
 import { auth } from './firebase'
 import { userService } from './userService'
@@ -7,7 +13,7 @@ const googleProvider = new GoogleAuthProvider()
 
 export const authService = {
   /**
-   * Sign in with Google (only auth method)
+   * Sign in with Google (only auth method for production)
    */
   signInWithGoogle: async () => {
     try {
@@ -33,6 +39,19 @@ export const authService = {
     }
   },
 
+  /**
+   * Sign in with email and password (ONLY for E2E testing with Firebase Emulator)
+   * This method should NOT be exposed in production UI
+   */
+  signInWithEmail: async (email: string, password: string) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      return { user: userCredential.user, error: null }
+    } catch (error) {
+      return { user: null, error: error as Error }
+    }
+  },
+
   signOut: async () => {
     try {
       await signOut(auth)
@@ -50,3 +69,4 @@ export const authService = {
     return auth.onAuthStateChanged(callback)
   },
 }
+

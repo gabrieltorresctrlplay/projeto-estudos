@@ -1,15 +1,15 @@
 import type { ActivityItem, DashboardStats } from '@/types'
 import {
   collection,
+  count,
   getAggregateFromServer,
   getDocs,
   limit,
   orderBy,
   query,
   sum,
-  count,
-  where,
   Timestamp,
+  where,
 } from 'firebase/firestore'
 
 import { db } from './firebase'
@@ -45,10 +45,10 @@ export const dashboardService = {
       const recentActivityQuery = query(
         transactionsRef,
         where('organizationId', '==', orgId),
-        where('createdAt', '>=', sevenDaysAgo)
+        where('createdAt', '>=', sevenDaysAgo),
       )
       const recentActivitySnapshot = await getAggregateFromServer(recentActivityQuery, {
-        count: count()
+        count: count(),
       })
 
       return {

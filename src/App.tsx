@@ -17,6 +17,8 @@ const TeamMembers = lazy(() => import('./pages/dashboard/TeamMembers'))
 const Queue = lazy(() => import('./pages/dashboard/Queue'))
 const Profile = lazy(() => import('./pages/dashboard/Profile'))
 const UnderConstruction = lazy(() => import('./pages/dashboard/UnderConstruction'))
+// E2E testing only - works with Firebase Emulator
+const E2ELogin = lazy(() => import('./pages/E2ELogin'))
 
 function App() {
   return (
@@ -38,6 +40,11 @@ function App() {
                   <Home />
                 </MainLayout>
               }
+            />
+            {/* E2E Testing Route - only works with Firebase Emulator */}
+            <Route
+              path="/e2e-login"
+              element={<E2ELogin />}
             />
             <Route element={<PublicOnlyRoute />}>
               <Route

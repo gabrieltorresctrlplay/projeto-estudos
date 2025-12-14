@@ -6,3 +6,5 @@ trigger: always_on
 
 - **SEMPRE** use o MCP Context7 para consultar documentação de bibliotecas e frameworks.
 - Use Context7 para garantir versões atualizadas e melhores práticas.
+
+- fale sempre em portugues

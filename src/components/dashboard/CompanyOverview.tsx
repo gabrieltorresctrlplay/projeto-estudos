@@ -145,7 +145,10 @@ export function CompanyOverview({ company }: CompanyOverviewProps) {
           <div className="space-y-4">
             {loading ? (
               Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0">
+                <div
+                  key={i}
+                  className="flex items-center justify-between border-b pb-3 last:border-0"
+                >
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-3 w-24" />
@@ -154,7 +157,7 @@ export function CompanyOverview({ company }: CompanyOverviewProps) {
                 </div>
               ))
             ) : activities.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4 text-sm">
+              <p className="text-muted-foreground py-4 text-center text-sm">
                 Nenhuma atividade recente encontrada.
               </p>
             ) : (

@@ -171,6 +171,16 @@
               "icon": "lucide-info",
               "title": "Propriedades dos arquivos"
             }
+          },
+          {
+            "id": "a146a2692fb4e09e",
+            "type": "leaf",
+            "state": {
+              "type": "calendar",
+              "state": {},
+              "icon": "calendar-with-checkmark",
+              "title": "Calendar"
+            }
           }
         ],
         "currentTab": 5
@@ -192,9 +202,14 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "7fb208b7b398bf1e",
+  "active": "7f4e2ab3ec3db6c2",
   "lastOpenFiles": [
     "nerfas conhecimentos/Excalidraw/Drawing 2025-12-13 10.03.00.excalidraw.md",
+    "Excalidraw/Drawing 2025-12-14 11.37.01.excalidraw.md",
+    "Pasted Image 20251214113633_864.png",
+    "Untitled",
+    "2025-12-14.md",
+    "Excalidraw",
     "Pasted Image 20251213152014_754.png",
     "nerfas conhecimentos/Excalidraw/Drawing 2025-12-13 10.06.01.excalidraw.md",
     "2025-12-13.md",
