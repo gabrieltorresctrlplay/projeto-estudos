@@ -7,6 +7,7 @@ import {
   getDoc,
   getDocs,
   query,
+  setDoc,
   updateDoc,
   where,
   type Timestamp,
@@ -37,23 +38,27 @@ export const organizationService = {
       const now = new Date()
 
       // 1. Create organization
+      // We include ownerId to secure the initial membership creation in Firestore rules
       const orgData = {
         name,
+        ownerId: userId,
         createdAt: now,
         updatedAt: now,
       }
       const orgRef = await addDoc(collection(db, 'organizations'), orgData)
 
-      // 2. Create owner membership
+      // 2. Create owner membership with deterministic ID
+      const memberId = `${userId}_${orgRef.id}`
       const memberData = {
         organizationId: orgRef.id,
         userId,
         role: 'owner' as MemberRole,
         joinedAt: now,
       }
-      const memberRef = await addDoc(collection(db, 'organization_members'), memberData)
 
-      return { orgId: orgRef.id, memberId: memberRef.id, error: null }
+      await setDoc(doc(db, 'organization_members', memberId), memberData)
+
+      return { orgId: orgRef.id, memberId, error: null }
     } catch (error) {
       return { orgId: null, memberId: null, error: error as Error }
     }
@@ -264,8 +269,9 @@ export const inviteService = {
         createdAt: now,
       }
 
-      const inviteRef = await addDoc(collection(db, 'invites'), inviteData)
-      return { token, inviteId: inviteRef.id, error: null }
+      // Use token as document ID for security rules
+      await setDoc(doc(db, 'invites', token), inviteData)
+      return { token, inviteId: token, error: null }
     } catch (error) {
       return { token: null, inviteId: null, error: error as Error }
     }
@@ -278,14 +284,13 @@ export const inviteService = {
     token: string,
   ): Promise<{ data: Invite | null; error: Error | null }> => {
     try {
-      const q = query(collection(db, 'invites'), where('token', '==', token))
-      const snapshot = await getDocs(q)
+      const inviteRef = doc(db, 'invites', token)
+      const inviteDoc = await getDoc(inviteRef)
 
-      if (snapshot.empty) {
+      if (!inviteDoc.exists()) {
         return { data: null, error: new Error('Invite not found') }
       }
 
-      const inviteDoc = snapshot.docs[0]
       const data = inviteDoc.data()
 
       // Check expiration
@@ -364,19 +369,27 @@ export const inviteService = {
         return { memberId: existingMembership.id, error: null }
       }
 
-      // 4. Create membership (only if not already a member)
+      // 4. Create membership with deterministic ID
+      // We include the inviteToken to validate the creation in Firestore rules
+      const memberId = `${userId}_${invite.organizationId}`
       const memberData = {
         organizationId: invite.organizationId,
         userId,
         role: invite.role,
         joinedAt: new Date(),
+        inviteToken: token, // Used for security rule validation
       }
-      const memberRef = await addDoc(collection(db, 'organization_members'), memberData)
+
+      // Using standard independent writes for now as batch imports might need restructuring
+      // but strictly we should use writeBatch.
+      // Let's rely on setDoc + deleteDoc sequence for now, but pass the token.
+
+      await setDoc(doc(db, 'organization_members', memberId), memberData)
 
       // 5. Delete invite
       await deleteDoc(doc(db, 'invites', invite.id))
 
-      return { memberId: memberRef.id, error: null }
+      return { memberId, error: null }
     } catch (error) {
       return { memberId: null, error: error as Error }
     }

@@ -1,5 +1,5 @@
 import type { UserProfile } from '@/types'
-import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
+import { doc, getDoc, runTransaction, setDoc, Timestamp } from 'firebase/firestore'
 
 import { db } from './firebase'
 
@@ -10,6 +10,7 @@ import { db } from './firebase'
 export const userService = {
   /**
    * Create or update a user profile after registration/login
+   * Uses a transaction to prevent race conditions
    */
   createUserProfile: async (
     uid: string,
@@ -20,34 +21,38 @@ export const userService = {
     try {
       const now = new Date()
       const userRef = doc(db, 'users', uid)
-      const existing = await getDoc(userRef)
 
-      if (existing.exists()) {
-        // Update existing profile (keep createdAt and hasCompletedOnboarding, update rest)
-        await setDoc(
-          userRef,
-          {
+      await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userRef)
+
+        if (userDoc.exists()) {
+          // Update existing profile (keep createdAt and hasCompletedOnboarding, update rest)
+          transaction.set(
+            userRef,
+            {
+              email,
+              displayName,
+              photoURL,
+              updatedAt: now,
+            },
+            { merge: true },
+          )
+        } else {
+          // Create new profile with hasCompletedOnboarding = false
+          transaction.set(userRef, {
             email,
             displayName,
             photoURL,
+            hasCompletedOnboarding: false,
+            createdAt: now,
             updatedAt: now,
-          },
-          { merge: true },
-        )
-      } else {
-        // Create new profile with hasCompletedOnboarding = false
-        await setDoc(userRef, {
-          email,
-          displayName,
-          photoURL,
-          hasCompletedOnboarding: false,
-          createdAt: now,
-          updatedAt: now,
-        })
-      }
+          })
+        }
+      })
 
       return { error: null }
     } catch (error) {
+      console.error('Error creating user profile:', error)
       return { error: error as Error }
     }
   },

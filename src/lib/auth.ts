@@ -14,12 +14,18 @@ export const authService = {
       const userCredential = await signInWithPopup(auth, googleProvider)
 
       // Save/update user profile from Google data
-      await userService.createUserProfile(
+      const { error: profileError } = await userService.createUserProfile(
         userCredential.user.uid,
         userCredential.user.email || '',
         userCredential.user.displayName,
         userCredential.user.photoURL,
       )
+
+      if (profileError) {
+        // If profile creation fails, sign out immediately to prevent inconsistent state
+        await signOut(auth)
+        throw profileError
+      }
 
       return { user: userCredential.user, error: null }
     } catch (error) {

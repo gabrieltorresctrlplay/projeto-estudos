@@ -2,36 +2,126 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Regras de segurança para usuários autenticados
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
     }
-    
-    // Regras para empresas - usuário só pode acessar suas próprias empresas
-    match /companies/{companyId} {
-      // Permitir leitura apenas se o usuário é o dono da empresa
-      allow read: if request.auth != null && resource.data.ownerId == request.auth.uid;
-      
-      // Permitir criação apenas se o usuário está definindo a si mesmo como dono
-      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
 
-      // Permitir atualização apenas se o usuário é o dono da empresa
-      allow update: if request.auth != null && resource.data.ownerId == request.auth.uid;
-      
-      // Permitir deleção apenas se o usuário é o dono da empresa
-      allow delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+    // Helper function to check if user is the owner of the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Helper function to check if user is a member of the organization
+    function isOrgMember(orgId) {
+      return isAuthenticated() && exists(/databases/$(database)/documents/organization_members/$(request.auth.uid + '_' + orgId));
+    }
+
+    // Helper function to check if user has a specific role in the organization
+    function hasOrgRole(orgId, role) {
+      let membership = get(/databases/$(database)/documents/organization_members/$(request.auth.uid + '_' + orgId));
+      return membership != null && membership.data.role == role;
+    }
+
+    // Helper function to check if user is owner or admin
+    function isOrgAdmin(orgId) {
+      let membership = get(/databases/$(database)/documents/organization_members/$(request.auth.uid + '_' + orgId));
+      return membership != null && (membership.data.role == 'owner' || membership.data.role == 'admin');
+    }
+
+    // =================================================================
+    // USERS COLLECTION
+    // =================================================================
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      allow read: if isAuthenticated();
     }
     
-    // Coleção pública (apenas leitura para todos, escrita para autenticados)
+    // =================================================================
+    // ORGANIZATIONS COLLECTION
+    // =================================================================
+    match /organizations/{orgId} {
+      // Read: Allowed if user is a member of the organization
+      allow read: if isOrgMember(orgId);
+      
+      // Create: Any authenticated user can create an organization
+      allow create: if isAuthenticated();
+
+      // Update: Only owners or admins
+      allow update: if isOrgAdmin(orgId);
+      
+      // Delete: Only owner
+      allow delete: if hasOrgRole(orgId, 'owner');
+    }
+    
+    // =================================================================
+    // ORGANIZATION MEMBERS COLLECTION
+    // =================================================================
+    match /organization_members/{memberId} {
+      // Document ID format: userId_orgId
+
+      // Read: Own membership OR member of the same org
+      allow read: if resource.data.userId == request.auth.uid || isOrgMember(resource.data.organizationId);
+
+      // Create: STRICT VALIDATION
+      allow create: if isAuthenticated() && (
+        // Scenario 1: Initial Owner Creation
+        // User is creating the organization and is the owner
+        (
+           request.resource.data.role == 'owner' &&
+           get(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)).data.ownerId == request.auth.uid
+        ) ||
+        // Scenario 2: Admin adding a member (Direct Add)
+        (
+           isOrgAdmin(request.resource.data.organizationId)
+        ) ||
+        // Scenario 3: Accepting an Invite
+        // - User must provide the valid inviteToken in the membership data
+        // - The invite must exist
+        // - The invite must match the organization and role
+        // - (Optional) The invite email must match the user's email (if we enforced email in auth)
+        (
+           request.resource.data.inviteToken != null &&
+           exists(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken)) &&
+           get(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken)).data.organizationId == request.resource.data.organizationId &&
+           get(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken)).data.role == request.resource.data.role
+        )
+      );
+
+      // Update: Only admins/owners
+      allow update: if isOrgAdmin(resource.data.organizationId);
+
+      // Delete: User leaving or Admin removing
+      allow delete: if resource.data.userId == request.auth.uid || isOrgAdmin(resource.data.organizationId);
+    }
+    
+    // =================================================================
+    // INVITES COLLECTION
+    // =================================================================
+    match /invites/{token} {
+      // Document ID is the token itself
+
+      // Get: Public if you have the token (ID)
+      allow get: if true;
+
+      // List: Only org members
+      allow list: if isOrgMember(resource.data.organizationId);
+
+      // Create: Only admins/owners
+      allow create: if isOrgAdmin(request.resource.data.organizationId);
+
+      // Delete:
+      // 1. Admins (revoking)
+      // 2. User accepting (must be authenticated) - relying on app logic to do this after create
+      allow delete: if isAuthenticated();
+    }
+
+    // =================================================================
+    // PUBLIC COLLECTION
+    // =================================================================
     match /public/{document} {
       allow read: if true;
-      allow write: if request.auth != null;
-    }
-    
-    // Regra temporária para desenvolvimento (REMOVER EM PRODUÇÃO)
-    // Expira em: 10/01/2026
-    match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2026, 1, 10);
+      allow write: if isAuthenticated();
     }
   }
 }

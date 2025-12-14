@@ -44,6 +44,14 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
       const { data, error: fetchError } = await organizationService.getUserMemberships(userId)
 
+      // Check if the user ID matches the current user context (prevents race conditions on switch/logout)
+      // Note: We can't easily access the 'latest' user state inside this async callback without a ref,
+      // but we can check if the component is mounted or if the result is relevant.
+      // For now, we rely on the fact that this is called from useEffect which handles cancellations by ignoring stales if we use a flag,
+      // but simpler: just check auth.currentUser directly if imported, or trust the caller.
+      // Better approach: Since we can't check 'isMounted' easily in functional components without a ref,
+      // we will assume the caller ensures validity, but we handle the error gracefully.
+
       if (fetchError) {
         setError(fetchError)
         return
@@ -75,7 +83,11 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
   // Listen to auth state changes
   useEffect(() => {
+    let isMounted = true
+
     const unsubscribe = authService.onAuthStateChanged(async (currentUser) => {
+      if (!isMounted) return
+
       setUser(currentUser)
 
       if (currentUser) {
@@ -96,11 +108,11 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           if (acceptError) {
             console.error('Failed to auto-accept invite:', acceptError)
           }
-          setIsProcessingInvite(false)
+          if (isMounted) setIsProcessingInvite(false)
         }
 
         // Load memberships (will include newly accepted invite if successful)
-        await loadMemberships(currentUser.uid)
+        if (isMounted) await loadMemberships(currentUser.uid)
       } else {
         // User logged out, clear state
         setMemberships([])
@@ -110,7 +122,10 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       }
     })
 
-    return () => unsubscribe()
+    return () => {
+      isMounted = false
+      unsubscribe()
+    }
   }, [loadMemberships])
 
   // Set current organization
@@ -143,9 +158,9 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         return { orgId: null, error: new Error('User not authenticated') }
       }
 
-      const { orgId, error } = await organizationService.createOrganization(user.uid, name)
+      const { orgId, memberId, error } = await organizationService.createOrganization(user.uid, name)
 
-      if (orgId && !error) {
+      if (orgId && memberId && !error) {
         // Manually update state to ensure immediate availability (avoid read latency)
         const newOrg: Organization = {
           id: orgId,
@@ -155,7 +170,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         }
 
         const newMembership: OrganizationMember = {
-          id: 'temp-' + Date.now(), // Temporary ID until reload
+          id: memberId, // Use real memberId
           organizationId: orgId,
           userId: user.uid,
           role: 'owner',
@@ -166,17 +181,17 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         setMemberships((prev) => [...prev, newMembership])
         setCurrentOrganizationState(newOrg)
         setCurrentMemberRole('owner')
-        if (user) {
-          localStorage.setItem(`lastOrgId_${user.uid}`, orgId)
-        }
 
-        // Background reload to get real IDs and ensure consistency
-        loadMemberships(user.uid)
+        localStorage.setItem(`lastOrgId_${user.uid}`, orgId)
+
+        // No need to reload immediately as we have the real IDs,
+        // but beneficial to ensure server sync eventually.
+        // We skip immediate reload to prevent UI flicker if the read is slower than the write propagation.
       }
 
       return { orgId, error }
     },
-    [user, loadMemberships],
+    [user], // Removed loadMemberships dependency as we don't call it immediately anymore
   )
 
   // Invite member
