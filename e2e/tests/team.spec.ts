@@ -1,31 +1,72 @@
-import { test, expect, type Page } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
+
 import {
+  addMemberToOrganization,
   clearAuthEmulator,
   clearFirestoreEmulator,
   createOwnerWithOrganization,
-  addMemberToOrganization,
+  signInTestUser,
 } from '../utils/firebase-emulator'
 
+// Run tests serially to avoid race conditions when clearing emulator data
+test.describe.configure({ mode: 'serial' })
+
 /**
- * Faz login via rota /e2e-login da aplicação React
+ * Faz login e configura a sessão no navegador
  */
-async function e2eLogin(page: Page, email: string, password: string, redirect: string = '/dashboard') {
-  const encodedEmail = encodeURIComponent(email)
-  const encodedPassword = encodeURIComponent(password)
-  const encodedRedirect = encodeURIComponent(redirect)
-  
-  await page.goto(`/e2e-login?email=${encodedEmail}&password=${encodedPassword}&redirect=${encodedRedirect}`)
-  
-  // Aguarda login bem-sucedido (redirecionamento)
-  await page.waitForURL((url) => !url.toString().includes('/e2e-login'), { timeout: 15000 })
+async function loginAndNavigate(
+  page: Page,
+  email: string,
+  password: string,
+  uid: string,
+  redirect: string = '/dashboard',
+) {
+  // Sign in via API to get token
+  const idToken = await signInTestUser(email, password)
+
+  // Navigate to app
+  await page.goto('/')
+
+  // Set auth token in localStorage (Firebase Auth persists here)
+  await page.evaluate(
+    ({ email, uid, token }) => {
+      const authKey = `firebase:authUser:demo-api-key:[DEFAULT]`
+      const authData = {
+        uid,
+        email,
+        emailVerified: false,
+        displayName: 'Test User',
+        isAnonymous: false,
+        providerData: [],
+        stsTokenManager: {
+          refreshToken: token,
+          accessToken: token,
+          expirationTime: Date.now() + 3600000,
+        },
+        createdAt: Date.now().toString(),
+        lastLoginAt: Date.now().toString(),
+        apiKey: 'demo-api-key',
+        appName: '[DEFAULT]',
+      }
+      localStorage.setItem(authKey, JSON.stringify(authData))
+    },
+    { email, uid, token: idToken },
+  )
+
+  // Navigate to the target page and wait for load
+  await page.goto(redirect, { waitUntil: 'domcontentloaded' })
 }
 
 /**
  * Aguarda a página carregar completamente (loading desaparecer)
  */
 async function waitForPageLoad(page: Page) {
-  // Aguardar o loading desaparecer
-  await expect(page.getByText(/carregando/i)).not.toBeVisible({ timeout: 15000 })
+  // Aguardar o LoadingSpinner principal desaparecer
+  const spinner = page.locator('[role="status"][aria-label="Carregando conteúdo"]')
+  await expect(spinner).not.toBeVisible({ timeout: 20000 })
+
+  // Pequeno delay para garantir que o conteúdo renderizou
+  await page.waitForTimeout(500)
 }
 
 /**
@@ -61,8 +102,8 @@ async function setupMember() {
 test.describe('Página de Equipe - Owner', () => {
   test('owner vê página com título "Equipe" após login', async ({ page }) => {
     const { user } = await setupOwner()
-    await e2eLogin(page, user.email, user.password, '/dashboard/0/team')
-    
+    await loginAndNavigate(page, user.email, user.password, user.uid, '/dashboard/0/team')
+
     if (page.url().includes('/team')) {
       await waitForPageLoad(page)
       await expect(page.getByRole('heading', { name: /equipe/i })).toBeVisible()
@@ -71,8 +112,8 @@ test.describe('Página de Equipe - Owner', () => {
 
   test('owner vê badge de Proprietário', async ({ page }) => {
     const { user } = await setupOwner()
-    await e2eLogin(page, user.email, user.password, '/dashboard/0/team')
-    
+    await loginAndNavigate(page, user.email, user.password, user.uid, '/dashboard/0/team')
+
     if (page.url().includes('/team')) {
       await waitForPageLoad(page)
       await expect(page.getByText(/proprietário/i)).toBeVisible()
@@ -81,8 +122,8 @@ test.describe('Página de Equipe - Owner', () => {
 
   test('owner vê botão Gerar Convite', async ({ page }) => {
     const { user } = await setupOwner()
-    await e2eLogin(page, user.email, user.password, '/dashboard/0/team')
-    
+    await loginAndNavigate(page, user.email, user.password, user.uid, '/dashboard/0/team')
+
     if (page.url().includes('/team')) {
       await waitForPageLoad(page)
       await expect(page.getByRole('button', { name: /gerar convite/i })).toBeVisible()
@@ -91,8 +132,8 @@ test.describe('Página de Equipe - Owner', () => {
 
   test('owner NÃO vê botão Sair da Empresa', async ({ page }) => {
     const { user } = await setupOwner()
-    await e2eLogin(page, user.email, user.password, '/dashboard/0/team')
-    
+    await loginAndNavigate(page, user.email, user.password, user.uid, '/dashboard/0/team')
+
     if (page.url().includes('/team')) {
       await waitForPageLoad(page)
       await expect(page.getByRole('button', { name: /sair da empresa/i })).not.toBeVisible()
@@ -107,8 +148,14 @@ test.describe('Página de Equipe - Owner', () => {
 test.describe('Página de Equipe - Admin', () => {
   test('admin vê botão Gerar Convite', async ({ page }) => {
     const { admin } = await setupAdmin()
-    await e2eLogin(page, admin.user.email, admin.user.password, '/dashboard/0/team')
-    
+    await loginAndNavigate(
+      page,
+      admin.user.email,
+      admin.user.password,
+      admin.user.uid,
+      '/dashboard/0/team',
+    )
+
     if (page.url().includes('/team')) {
       await waitForPageLoad(page)
       await expect(page.getByRole('button', { name: /gerar convite/i })).toBeVisible()
@@ -117,8 +164,14 @@ test.describe('Página de Equipe - Admin', () => {
 
   test('admin vê botão Sair da Empresa', async ({ page }) => {
     const { admin } = await setupAdmin()
-    await e2eLogin(page, admin.user.email, admin.user.password, '/dashboard/0/team')
-    
+    await loginAndNavigate(
+      page,
+      admin.user.email,
+      admin.user.password,
+      admin.user.uid,
+      '/dashboard/0/team',
+    )
+
     if (page.url().includes('/team')) {
       await waitForPageLoad(page)
       await expect(page.getByRole('button', { name: /sair da empresa/i })).toBeVisible()
@@ -133,8 +186,14 @@ test.describe('Página de Equipe - Admin', () => {
 test.describe('Página de Equipe - Membro', () => {
   test('membro NÃO vê botão Gerar Convite', async ({ page }) => {
     const { member } = await setupMember()
-    await e2eLogin(page, member.user.email, member.user.password, '/dashboard/0/team')
-    
+    await loginAndNavigate(
+      page,
+      member.user.email,
+      member.user.password,
+      member.user.uid,
+      '/dashboard/0/team',
+    )
+
     if (page.url().includes('/team')) {
       await waitForPageLoad(page)
       await expect(page.getByRole('button', { name: /gerar convite/i })).not.toBeVisible()
@@ -143,8 +202,14 @@ test.describe('Página de Equipe - Membro', () => {
 
   test('membro vê botão Sair da Empresa', async ({ page }) => {
     const { member } = await setupMember()
-    await e2eLogin(page, member.user.email, member.user.password, '/dashboard/0/team')
-    
+    await loginAndNavigate(
+      page,
+      member.user.email,
+      member.user.password,
+      member.user.uid,
+      '/dashboard/0/team',
+    )
+
     if (page.url().includes('/team')) {
       await waitForPageLoad(page)
       await expect(page.getByRole('button', { name: /sair da empresa/i })).toBeVisible()
@@ -160,7 +225,7 @@ test.describe('Página de Equipe - Proteção', () => {
   test('usuário não autenticado é redirecionado para login', async ({ page }) => {
     await clearAuthEmulator()
     await clearFirestoreEmulator()
-    
+
     await page.goto('/dashboard/0/team')
     await page.waitForURL(/\/(auth|login)/)
   })

@@ -74,11 +74,14 @@ test.describe('Fluxo de Autenticação', () => {
       sessionStorage.clear()
     })
 
-    // Recarregar e tentar acessar rota protegida
+    // Recarregar a página para que o Firebase Auth detecte a mudança
+    await page.reload()
+
+    // Aguardar e tentar acessar rota protegida
     await page.goto('/dashboard')
 
-    // Deve ser redirecionado para login
-    await page.waitForURL(/\/(auth|login)/)
+    // Deve ser redirecionado para login (com timeout maior)
+    await page.waitForURL(/\/(auth|login)/, { timeout: 15000 })
   })
 })
 

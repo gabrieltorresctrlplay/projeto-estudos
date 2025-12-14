@@ -5,6 +5,7 @@ import { Check, Copy, Crown, LogOut, Shield, Ticket, Trash2, User, UserPlus } fr
 import { useNavigate } from 'react-router-dom'
 
 import { inviteService, organizationService } from '@/lib/organizationService'
+import { useCompanySync } from '@/hooks/useCompanySync'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,6 +17,10 @@ type MemberWithUser = OrganizationMember & { user?: UserProfile }
 
 export default function TeamMembers() {
   const navigate = useNavigate()
+
+  // Sync company index from URL with context
+  const { isSyncing } = useCompanySync()
+
   const { currentOrganization, currentMemberRole, user, refreshMemberships } =
     useOrganizationContext()
   const [members, setMembers] = useState<MemberWithUser[]>([])
@@ -162,7 +167,7 @@ export default function TeamMembers() {
     }
   }
 
-  if (loading) {
+  if (loading || isSyncing) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <LoadingSpinner />

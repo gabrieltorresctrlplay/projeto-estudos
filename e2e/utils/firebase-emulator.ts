@@ -96,12 +96,9 @@ export async function clearAuthEmulator(): Promise<void> {
  * Clears all data from Firebase Firestore Emulator
  */
 export async function clearFirestoreEmulator(): Promise<void> {
-  await fetch(
-    `${FIRESTORE_URL}/emulator/v1/projects/${PROJECT_ID}/databases/(default)/documents`,
-    {
-      method: 'DELETE',
-    },
-  )
+  await fetch(`${FIRESTORE_URL}/emulator/v1/projects/${PROJECT_ID}/databases/(default)/documents`, {
+    method: 'DELETE',
+  })
 }
 
 /**
@@ -131,11 +128,11 @@ export async function createUserProfile(
   uid: string,
   email: string,
   displayName: string,
-  hasCompletedOnboarding: boolean = true
+  hasCompletedOnboarding: boolean = true,
 ): Promise<void> {
   const now = new Date().toISOString()
-  
-  await fetch(
+
+  const response = await fetch(
     `${FIRESTORE_URL}/v1/projects/${PROJECT_ID}/databases/(default)/documents/users?documentId=${uid}`,
     {
       method: 'POST',
@@ -152,19 +149,21 @@ export async function createUserProfile(
       }),
     },
   )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Failed to create user profile: ${error}`)
+  }
 }
 
 /**
  * Creates an organization in Firestore
  */
-export async function createOrganization(
-  name: string,
-  ownerId: string
-): Promise<TestOrganization> {
+export async function createOrganization(name: string, ownerId: string): Promise<TestOrganization> {
   const now = new Date().toISOString()
   const orgId = `org-${Date.now()}-${Math.random().toString(36).substring(7)}`
-  
-  await fetch(
+
+  const response = await fetch(
     `${FIRESTORE_URL}/v1/projects/${PROJECT_ID}/databases/(default)/documents/organizations?documentId=${orgId}`,
     {
       method: 'POST',
@@ -180,6 +179,11 @@ export async function createOrganization(
     },
   )
 
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Failed to create organization: ${error}`)
+  }
+
   return { id: orgId, name, ownerId }
 }
 
@@ -189,12 +193,12 @@ export async function createOrganization(
 export async function createMembership(
   organizationId: string,
   userId: string,
-  role: 'owner' | 'admin' | 'member'
+  role: 'owner' | 'admin' | 'member',
 ): Promise<TestMember> {
   const now = new Date().toISOString()
   const memberId = `${userId}_${organizationId}`
-  
-  await fetch(
+
+  const response = await fetch(
     `${FIRESTORE_URL}/v1/projects/${PROJECT_ID}/databases/(default)/documents/organization_members?documentId=${memberId}`,
     {
       method: 'POST',
@@ -210,6 +214,11 @@ export async function createMembership(
     },
   )
 
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Failed to create membership: ${error}`)
+  }
+
   return { id: memberId, organizationId, userId, role }
 }
 
@@ -218,7 +227,7 @@ export async function createMembership(
  */
 export async function createOwnerWithOrganization(
   userName: string = 'Owner User',
-  orgName: string = 'Test Organization'
+  orgName: string = 'Test Organization',
 ): Promise<{
   user: TestUser & { uid: string }
   organization: TestOrganization
@@ -249,7 +258,7 @@ export async function createOwnerWithOrganization(
 export async function addMemberToOrganization(
   organizationId: string,
   role: 'admin' | 'member',
-  userName: string = 'Team Member'
+  userName: string = 'Team Member',
 ): Promise<{
   user: TestUser & { uid: string }
   membership: TestMember
@@ -269,4 +278,3 @@ export async function addMemberToOrganization(
 
   return { user, membership }
 }
-
