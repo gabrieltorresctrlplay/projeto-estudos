@@ -19,7 +19,7 @@ export function ModeToggle() {
         <Button
           variant="outline"
           size="icon"
-          className="border-border shadow-md"
+          className="border-border"
         >
           {theme === 'light' && <Sun className="h-[1.2rem] w-[1.2rem]" />}
           {theme === 'dark' && <Moon className="h-[1.2rem] w-[1.2rem]" />}

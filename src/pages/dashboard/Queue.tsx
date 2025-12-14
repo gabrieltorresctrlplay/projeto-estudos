@@ -22,8 +22,21 @@ export default function Queue() {
       </div>
 
       {/* Botões de navegação */}
+      {/* Botões de navegação */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="hover:border-primary cursor-pointer transition-colors">
+        <Card
+          className="hover:border-primary focus-visible:ring-primary cursor-pointer transition-colors focus-visible:ring-2 focus-visible:outline-none"
+          role="button"
+          tabIndex={0}
+          aria-label="Acessar painel de monitores"
+          onClick={() => setIsMonitorDialogOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setIsMonitorDialogOpen(true)
+            }
+          }}
+        >
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Monitores</CardTitle>
@@ -33,20 +46,20 @@ export default function Queue() {
           </CardHeader>
           <CardContent>
             <Button
-              className="w-full"
+              className="pointer-events-none w-full"
               variant="outline"
-              onClick={() => setIsMonitorDialogOpen(true)}
+              tabIndex={-1}
             >
               Acessar Monitores
             </Button>
           </CardContent>
         </Card>
 
-        <Card className="hover:border-primary cursor-pointer transition-colors">
+        <Card className="cursor-not-allowed border-dashed opacity-60 transition-colors">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Guichês</CardTitle>
-              <Users className="text-primary h-5 w-5" />
+              <Users className="text-muted-foreground h-5 w-5" />
             </div>
             <CardDescription>Gerencie os guichês de atendimento</CardDescription>
           </CardHeader>
@@ -54,17 +67,18 @@ export default function Queue() {
             <Button
               className="w-full"
               variant="outline"
+              disabled
             >
-              Acessar Guichês
+              Em breve
             </Button>
           </CardContent>
         </Card>
 
-        <Card className="hover:border-primary cursor-pointer transition-colors">
+        <Card className="cursor-not-allowed border-dashed opacity-60 transition-colors">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Informações</CardTitle>
-              <Info className="text-primary h-5 w-5" />
+              <Info className="text-muted-foreground h-5 w-5" />
             </div>
             <CardDescription>Configurações e estatísticas</CardDescription>
           </CardHeader>
@@ -72,8 +86,9 @@ export default function Queue() {
             <Button
               className="w-full"
               variant="outline"
+              disabled
             >
-              Ver Informações
+              Em breve
             </Button>
           </CardContent>
         </Card>

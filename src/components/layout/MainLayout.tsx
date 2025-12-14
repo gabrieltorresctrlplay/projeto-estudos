@@ -1,6 +1,5 @@
 import { type ReactNode } from 'react'
 
-import { ConcreteBackground } from '@/components/ui/concrete-background'
 import { ThemeProvider } from '@/components/theme/theme-provider'
 
 import { Footer } from './Footer'
@@ -17,9 +16,6 @@ export function MainLayout({ children }: MainLayoutProps) {
       storageKey="vite-ui-theme"
     >
       <div className="text-foreground relative flex h-screen flex-col overflow-hidden transition-none">
-        {/* Concrete Texture Background */}
-        <ConcreteBackground />
-
         {/* Static Grid Overlay */}
         <div
           className="pointer-events-none fixed inset-0 -z-20 h-full w-full bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-size-[14px_24px] opacity-10"

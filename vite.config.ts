@@ -20,32 +20,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('firebase')) {
-              return 'vendor-firebase'
-            }
-            if (
-              id.includes('react') ||
-              id.includes('react-dom') ||
-              id.includes('react-router-dom')
-            ) {
-              return 'vendor-react'
-            }
-            if (
-              id.includes('framer-motion') ||
-              id.includes('lucide-react') ||
-              id.includes('@radix-ui')
-            ) {
-              return 'vendor-ui'
-            }
-
-            // Other small dependencies can stay in a general vendor chunk
-            // or be bundled with the entry point if small enough.
-            // Let's put remaining large ones in a separate vendor chunk.
-            return 'vendor'
-          }
-        },
+        // manualChunks removed to fix "Cannot read properties of undefined (reading 'useLayoutEffect')"
+        // letting Vite/Rollup handle splitting automatically is safer for React 19 + Radix
       },
     },
   },

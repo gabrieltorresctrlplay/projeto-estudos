@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "fe05c20601662174",
+        "id": "5a2dc3d55a3c6e7c",
         "type": "tabs",
         "children": [
           {
-            "id": "fc5c665e61288c31",
+            "id": "7fb208b7b398bf1e",
             "type": "leaf",
             "state": {
               "type": "excalidraw",
@@ -42,7 +42,7 @@
                 "autoReveal": true
               },
               "icon": "lucide-folder-closed",
-              "title": "Explorador de arquivos"
+              "title": "Files"
             }
           },
           {
@@ -182,53 +182,19 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "switcher:Abrir a troca rápida": false,
-      "graph:Abrir visualização em gráfico": false,
-      "canvas:Criar novo canvas": false,
-      "daily-notes:Abrir a nota de hoje": false,
-      "templates:Inserir modelo": false,
-      "command-palette:Abrir paleta de comandos": false,
-      "bases:Criar nova base": false,
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "floating": {
-    "id": "148c0bc299691bb7",
-    "type": "floating",
-    "children": [
-      {
-        "id": "7403855643c1abbc",
-        "type": "window",
-        "children": [
-          {
-            "id": "ad81fea1c1a4810b",
-            "type": "tabs",
-            "children": [
-              {
-                "id": "0a32dc58561feaf9",
-                "type": "leaf",
-                "state": {
-                  "type": "empty",
-                  "state": {},
-                  "icon": "lucide-file",
-                  "title": "Nova aba"
-                }
-              }
-            ]
-          }
-        ],
-        "direction": "vertical",
-        "x": 448,
-        "y": 116,
-        "width": 1024,
-        "height": 800,
-        "maximize": false,
-        "zoom": 0
-      }
-    ]
-  },
-  "active": "0a32dc58561feaf9",
+  "active": "7fb208b7b398bf1e",
   "lastOpenFiles": [
+    "Pasted Image 20251213152014_754.png",
     "nerfas conhecimentos/Excalidraw/Drawing 2025-12-13 10.03.00.excalidraw.md",
     "nerfas conhecimentos/Excalidraw/Drawing 2025-12-13 10.06.01.excalidraw.md",
     "2025-12-13.md",
