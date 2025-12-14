@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { useOrganizationContext } from '@/contexts/OrganizationContext'
-import { Loader2, Mail } from 'lucide-react'
+import { Check, Copy, Loader2, Ticket } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -28,20 +27,22 @@ interface InviteMemberDialogProps {
 }
 
 export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogProps) {
-  const { inviteMember, currentOrganization } = useOrganizationContext()
-  const [email, setEmail] = useState('')
+  const { inviteMember, currentOrganization, currentMemberRole } = useOrganizationContext()
   const [role, setRole] = useState<'admin' | 'member'>('member')
-  const [isGeneric, setIsGeneric] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [inviteToken, setInviteToken] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  // Admin can only invite members, Owner can invite both
+  const canInviteAdmin = currentMemberRole === 'owner'
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setLoading(true)
 
-    const { token, error: inviteError } = await inviteMember(isGeneric ? null : email, role)
+    const { token, error: inviteError } = await inviteMember(role)
 
     if (inviteError) {
       setError(inviteError.message)
@@ -56,21 +57,18 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
   }
 
   const handleClose = () => {
-    setEmail('')
     setRole('member')
-    setIsGeneric(false)
     setError(null)
     setInviteToken(null)
+    setCopied(false)
     onOpenChange(false)
   }
 
-  const inviteLink = inviteToken
-    ? `${window.location.origin}/accept-invite?token=${inviteToken}`
-    : null
-
-  const copyInviteLink = () => {
-    if (inviteLink) {
-      navigator.clipboard.writeText(inviteLink)
+  const copyToken = () => {
+    if (inviteToken) {
+      navigator.clipboard.writeText(inviteToken)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
   }
 
@@ -81,9 +79,9 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
     >
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Convidar Membro</DialogTitle>
+          <DialogTitle>Gerar Token de Convite</DialogTitle>
           <DialogDescription>
-            Envie um convite para alguém se juntar à {currentOrganization?.name}.
+            Gere um token para convidar alguém para {currentOrganization?.name}.
           </DialogDescription>
         </DialogHeader>
 
@@ -92,44 +90,6 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
             onSubmit={handleInvite}
             className="space-y-4"
           >
-            <div className="space-y-2">
-              <Label htmlFor="email">Email do convidado</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="usuario@exemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading || isGeneric}
-                required={!isGeneric}
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="generic"
-                checked={isGeneric}
-                onCheckedChange={(checked: boolean) => setIsGeneric(checked === true)}
-                disabled={loading}
-              />
-              <Label
-                htmlFor="generic"
-                className="cursor-pointer text-sm font-normal"
-              >
-                Link genérico (qualquer pessoa pode usar)
-              </Label>
-            </div>
-            {isGeneric && (
-              <div className="rounded border border-yellow-500/20 bg-yellow-500/10 p-2 text-xs text-yellow-700 dark:text-yellow-400">
-                ⚠️ Link expira em <strong>5 minutos</strong>. Qualquer pessoa pode usar.
-              </div>
-            )}
-            {!isGeneric && email && (
-              <p className="text-muted-foreground text-xs">
-                Este convite expira em <strong>24 horas</strong> e só pode ser usado por {email}.
-              </p>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="role">Cargo</Label>
               <Select
@@ -142,13 +102,27 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="member">Membro</SelectItem>
-                  <SelectItem value="admin">Administrador</SelectItem>
+                  {canInviteAdmin && <SelectItem value="admin">Administrador</SelectItem>}
                 </SelectContent>
               </Select>
               <p className="text-muted-foreground text-xs">
                 {role === 'admin'
                   ? 'Administradores podem convidar e gerenciar membros.'
                   : 'Membros têm acesso básico à organização.'}
+              </p>
+              {!canInviteAdmin && (
+                <p className="text-muted-foreground text-xs italic">
+                  Apenas proprietários podem convidar administradores.
+                </p>
+              )}
+            </div>
+
+            <div className="bg-muted/50 rounded-lg p-3 text-xs">
+              <p className="text-muted-foreground">
+                • O token expira em <strong>24 horas</strong>
+              </p>
+              <p className="text-muted-foreground">
+                • Só pode ser usado <strong>uma vez</strong>
               </p>
             </div>
 
@@ -169,43 +143,49 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
               </Button>
               <Button
                 type="submit"
-                disabled={loading || (!isGeneric && !email.trim())}
+                disabled={loading}
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Enviar Convite
+                Gerar Token
               </Button>
             </DialogFooter>
           </form>
         ) : (
           <div className="space-y-4">
             <div className="bg-muted/50 flex items-center gap-2 rounded-lg p-4">
-              <Mail className="text-primary h-5 w-5" />
+              <Ticket className="text-primary h-5 w-5" />
               <div className="flex-1">
-                <p className="text-sm font-medium">Convite enviado!</p>
+                <p className="text-sm font-medium">Token gerado!</p>
                 <p className="text-muted-foreground text-xs">
-                  {inviteToken && email
-                    ? `Compartilhe o link abaixo com ${email}`
-                    : 'Compartilhe o link abaixo (expira em 5 minutos)'}
+                  Compartilhe este token com a pessoa que deseja convidar.
                 </p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Link do Convite</Label>
+              <Label>Token de Convite</Label>
               <div className="flex gap-2">
                 <Input
-                  value={inviteLink || ''}
+                  value={inviteToken}
                   readOnly
-                  className="font-mono text-xs"
+                  className="font-mono text-sm"
                 />
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={copyInviteLink}
+                  onClick={copyToken}
+                  className="shrink-0"
                 >
-                  Copiar
+                  {copied ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
+              <p className="text-muted-foreground text-xs">
+                A pessoa deve colar este token na tela de Dashboard ou Onboarding.
+              </p>
             </div>
 
             <DialogFooter>

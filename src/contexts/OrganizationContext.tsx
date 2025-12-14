@@ -14,15 +14,13 @@ interface OrganizationContextType {
   currentOrganization: Organization | null
   currentMemberRole: MemberRole | null
   isLoading: boolean
+  isProcessingInvite: boolean // True while auto-accepting a pending invite
   error: Error | null
 
   // Actions
   setCurrentOrganization: (orgId: string) => void
   createOrganization: (name: string) => Promise<{ orgId: string | null; error: Error | null }>
-  inviteMember: (
-    email: string | null,
-    role: 'admin' | 'member',
-  ) => Promise<{ token: string | null; error: Error | null }>
+  inviteMember: (role: 'admin' | 'member') => Promise<{ token: string | null; error: Error | null }>
   acceptInvite: (token: string) => Promise<{ success: boolean; error: Error | null }>
   refreshMemberships: () => Promise<void>
 }
@@ -35,6 +33,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
   const [currentOrganization, setCurrentOrganizationState] = useState<Organization | null>(null)
   const [currentMemberRole, setCurrentMemberRole] = useState<MemberRole | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isProcessingInvite, setIsProcessingInvite] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
   // Load memberships when user changes
@@ -85,6 +84,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
         if (pendingToken && currentUser.email) {
           // Auto-accept pending invite
+          setIsProcessingInvite(true)
           sessionStorage.removeItem('pendingInviteToken')
 
           const { error: acceptError } = await inviteService.acceptInvite(
@@ -96,6 +96,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           if (acceptError) {
             console.error('Failed to auto-accept invite:', acceptError)
           }
+          setIsProcessingInvite(false)
         }
 
         // Load memberships (will include newly accepted invite if successful)
@@ -180,10 +181,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
   // Invite member
   const inviteMember = useCallback(
-    async (
-      email: string | null,
-      role: 'admin' | 'member',
-    ): Promise<{ token: string | null; error: Error | null }> => {
+    async (role: 'admin' | 'member'): Promise<{ token: string | null; error: Error | null }> => {
       if (!user) {
         return { token: null, error: new Error('User not authenticated') }
       }
@@ -197,7 +195,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         return { token: null, error: new Error('Insufficient permissions to invite members') }
       }
 
-      return await inviteService.createInvite(currentOrganization.id, email, role, user.uid)
+      return await inviteService.createInvite(currentOrganization.id, role, user.uid)
     },
     [user, currentOrganization, currentMemberRole],
   )
@@ -236,6 +234,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       currentOrganization,
       currentMemberRole,
       isLoading,
+      isProcessingInvite,
       error,
       setCurrentOrganization,
       createOrganization,
@@ -249,6 +248,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       currentOrganization,
       currentMemberRole,
       isLoading,
+      isProcessingInvite,
       error,
       setCurrentOrganization,
       createOrganization,

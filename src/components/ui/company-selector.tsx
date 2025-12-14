@@ -1,10 +1,18 @@
 import { useState } from 'react'
-import type { Company, Organization } from '@/types'
-import { Building2, ChevronDown, Plus } from 'lucide-react'
+import type { OrganizationMember } from '@/types'
+import { Building2, ChevronDown, Plus, Ticket } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { CreateCompanyDialog } from '@/components/ui/create-company-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,35 +21,68 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface CompanySelectorProps {
-  companies: (Company | Organization)[]
-  selectedCompany: (Company | Organization) | null
+  memberships: OrganizationMember[]
+  selectedCompanyId: string | null
   onSelectCompany: (companyId: string) => void
   onCreateCompany: (name: string) => Promise<boolean>
+  onJoinCompany: (token: string) => Promise<{ success: boolean; error: Error | null }>
   isLoading?: boolean
 }
 
 export function CompanySelector({
-  companies,
-  selectedCompany,
+  memberships,
+  selectedCompanyId,
   onSelectCompany,
   onCreateCompany,
+  onJoinCompany,
   isLoading = false,
 }: CompanySelectorProps) {
   const navigate = useNavigate()
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false)
+  const [joinToken, setJoinToken] = useState('')
+  const [joining, setJoining] = useState(false)
+  const [joinError, setJoinError] = useState<string | null>(null)
 
-  const hasCompanies = companies.length > 0
-  const isFirstCompany = companies.length === 0
+  // Separate memberships by role
+  const ownedCompanies = memberships.filter((m) => m.role === 'owner')
+  const linkedCompanies = memberships.filter((m) => m.role !== 'owner')
+
+  const hasCompanies = memberships.length > 0
+  const selectedCompany = memberships.find(
+    (m) => m.organizationId === selectedCompanyId,
+  )?.organization
 
   const handleSelectCompany = (companyId: string) => {
-    // Find the index of the company
-    const index = companies.findIndex((c) => c.id === companyId)
+    const index = memberships.findIndex((m) => m.organizationId === companyId)
     if (index === -1) return
 
     onSelectCompany(companyId)
     navigate(`/dashboard/${index}`)
+  }
+
+  const handleJoinCompany = async () => {
+    if (!joinToken.trim()) return
+
+    setJoining(true)
+    setJoinError(null)
+
+    const { success, error } = await onJoinCompany(joinToken.trim())
+
+    if (error) {
+      setJoinError(error.message)
+      setJoining(false)
+      return
+    }
+
+    if (success) {
+      setIsJoinDialogOpen(false)
+      setJoinToken('')
+    }
   }
 
   return (
@@ -59,7 +100,7 @@ export function CompanySelector({
                 ? 'Carregando...'
                 : hasCompanies && selectedCompany
                   ? selectedCompany.name
-                  : 'Crie sua primeira empresa'}
+                  : 'Selecionar empresa'}
             </span>
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
@@ -67,66 +108,149 @@ export function CompanySelector({
 
         <DropdownMenuContent
           align="end"
-          className="w-[240px]"
+          className="w-[260px]"
         >
-          {hasCompanies ? (
+          {/* Owned companies section */}
+          {ownedCompanies.length > 0 && (
             <>
-              <DropdownMenuLabel>Suas Empresas</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-
-              {companies.map((company) => (
+              <DropdownMenuLabel className="text-muted-foreground text-xs">
+                Suas Empresas
+              </DropdownMenuLabel>
+              {ownedCompanies.map((membership) => (
                 <DropdownMenuItem
-                  key={company.id}
-                  onClick={() => handleSelectCompany(company.id)}
+                  key={membership.id}
+                  onClick={() => handleSelectCompany(membership.organizationId)}
                   className="cursor-pointer"
                 >
                   <Building2 className="mr-2 h-4 w-4" />
-                  <span className="flex-1 truncate">{company.name}</span>
-                  {selectedCompany?.id === company.id && (
+                  <span className="flex-1 truncate">{membership.organization?.name}</span>
+                  {selectedCompanyId === membership.organizationId && (
                     <span className="text-primary ml-2 text-xs">✓</span>
                   )}
                 </DropdownMenuItem>
               ))}
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem
-                onClick={() => setIsDialogOpen(true)}
-                className="cursor-pointer"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                <span>Criar nova empresa</span>
-              </DropdownMenuItem>
             </>
-          ) : (
+          )}
+
+          {/* Linked companies section */}
+          {linkedCompanies.length > 0 && (
+            <>
+              {ownedCompanies.length > 0 && <DropdownMenuSeparator />}
+              <DropdownMenuLabel className="text-muted-foreground text-xs">
+                Vinculado
+              </DropdownMenuLabel>
+              {linkedCompanies.map((membership) => (
+                <DropdownMenuItem
+                  key={membership.id}
+                  onClick={() => handleSelectCompany(membership.organizationId)}
+                  className="cursor-pointer"
+                >
+                  <Building2 className="mr-2 h-4 w-4" />
+                  <span className="flex-1 truncate">{membership.organization?.name}</span>
+                  <span className="text-muted-foreground text-xs capitalize">
+                    {membership.role === 'admin' ? 'Admin' : 'Membro'}
+                  </span>
+                  {selectedCompanyId === membership.organizationId && (
+                    <span className="text-primary ml-2 text-xs">✓</span>
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </>
+          )}
+
+          {/* Empty state */}
+          {!hasCompanies && (
             <>
               <DropdownMenuLabel>Bem-vindo!</DropdownMenuLabel>
               <DropdownMenuSeparator />
-
               <div className="text-muted-foreground px-2 py-3 text-sm">
                 Você ainda não tem empresas cadastradas.
               </div>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem
-                onClick={() => setIsDialogOpen(true)}
-                className="cursor-pointer"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                <span>Criar primeira empresa</span>
-              </DropdownMenuItem>
             </>
           )}
+
+          <DropdownMenuSeparator />
+
+          {/* Actions */}
+          <DropdownMenuItem
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="cursor-pointer"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            <span>Criar nova empresa</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={() => setIsJoinDialogOpen(true)}
+            className="cursor-pointer"
+          >
+            <Ticket className="mr-2 h-4 w-4" />
+            <span>Entrar com token</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Create Company Dialog */}
       <CreateCompanyDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
         onCreateCompany={onCreateCompany}
-        isFirstCompany={isFirstCompany}
+        isFirstCompany={!hasCompanies}
       />
+
+      {/* Join Company Dialog */}
+      <Dialog
+        open={isJoinDialogOpen}
+        onOpenChange={setIsJoinDialogOpen}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Entrar em uma Empresa</DialogTitle>
+            <DialogDescription>
+              Cole o token de convite que você recebeu para se vincular a uma empresa.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="joinToken">Token de Convite</Label>
+              <Input
+                id="joinToken"
+                placeholder="Cole o token aqui"
+                value={joinToken}
+                onChange={(e) => setJoinToken(e.target.value)}
+                disabled={joining}
+              />
+            </div>
+
+            {joinError && (
+              <div className="border-destructive/20 bg-destructive/10 text-destructive rounded border p-2 text-sm">
+                {joinError}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsJoinDialogOpen(false)
+                setJoinToken('')
+                setJoinError(null)
+              }}
+              disabled={joining}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleJoinCompany}
+              disabled={joining || !joinToken.trim()}
+            >
+              {joining ? 'Entrando...' : 'Entrar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

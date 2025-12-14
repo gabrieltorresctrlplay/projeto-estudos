@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useOrganizationContext } from '@/contexts/OrganizationContext'
 import { motion } from 'framer-motion'
-import { Building2, LogOut, Mail, Plus } from 'lucide-react'
+import { ArrowRight, Building2, LogOut, Ticket } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { authService } from '@/lib/auth'
+import { userService } from '@/lib/userService'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -12,12 +13,13 @@ import { Label } from '@/components/ui/label'
 
 export default function Onboarding() {
   const navigate = useNavigate()
-  const { createOrganization, acceptInvite, isLoading } = useOrganizationContext()
+  const { user, createOrganization, acceptInvite, isLoading } = useOrganizationContext()
 
   const [orgName, setOrgName] = useState('')
   const [inviteToken, setInviteToken] = useState('')
   const [creating, setCreating] = useState(false)
   const [accepting, setAccepting] = useState(false)
+  const [skipping, setSkipping] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleLogout = async () => {
@@ -25,8 +27,19 @@ export default function Onboarding() {
     navigate('/')
   }
 
+  const handleSkip = async () => {
+    if (!user) return
+
+    setSkipping(true)
+    // Mark onboarding as complete so it doesn't show again
+    await userService.setOnboardingComplete(user.uid)
+    navigate('/dashboard')
+  }
+
   const handleCreateOrg = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!user) return
+
     setError(null)
     setCreating(true)
 
@@ -39,13 +52,16 @@ export default function Onboarding() {
     }
 
     if (orgId) {
-      // Successfully created, redirect to dashboard
+      // Mark onboarding complete and redirect
+      await userService.setOnboardingComplete(user.uid)
       navigate('/dashboard')
     }
   }
 
   const handleJoinOrg = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!user) return
+
     setError(null)
     setAccepting(true)
 
@@ -58,7 +74,8 @@ export default function Onboarding() {
     }
 
     if (success) {
-      // Successfully joined, redirect to dashboard
+      // Mark onboarding complete and redirect
+      await userService.setOnboardingComplete(user.uid)
       navigate('/dashboard')
     }
   }
@@ -71,8 +88,17 @@ export default function Onboarding() {
         transition={{ duration: 0.3 }}
         className="w-full max-w-4xl"
       >
-        {/* Logout Button */}
-        <div className="absolute top-4 right-4">
+        {/* Header buttons */}
+        <div className="absolute top-4 right-4 flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSkip}
+            disabled={skipping}
+          >
+            <ArrowRight className="mr-2 h-4 w-4" />
+            {skipping ? 'Pulando...' : 'Pular'}
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -86,7 +112,7 @@ export default function Onboarding() {
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold">Bem-vindo!</h1>
           <p className="text-muted-foreground mt-2">
-            Para começar, crie uma nova organização ou entre em uma existente.
+            Crie uma organização, entre em uma existente, ou pule para explorar como visitante.
           </p>
         </div>
 
@@ -123,17 +149,7 @@ export default function Onboarding() {
                   className="w-full"
                   disabled={creating || isLoading || !orgName.trim()}
                 >
-                  {creating ? (
-                    <>
-                      <Plus className="mr-2 h-4 w-4 animate-spin" />
-                      Criando...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Criar Organização
-                    </>
-                  )}
+                  {creating ? 'Criando...' : 'Criar Organização'}
                 </Button>
               </form>
             </CardContent>
@@ -144,11 +160,11 @@ export default function Onboarding() {
             <CardHeader>
               <div className="mb-4 flex justify-center">
                 <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-full">
-                  <Mail className="h-6 w-6" />
+                  <Ticket className="h-6 w-6" />
                 </div>
               </div>
-              <CardTitle>Entrar em Organização</CardTitle>
-              <CardDescription>Cole o token do link de convite que você recebeu</CardDescription>
+              <CardTitle>Entrar com Token</CardTitle>
+              <CardDescription>Cole o código de convite que você recebeu</CardDescription>
             </CardHeader>
             <CardContent>
               <form
@@ -159,15 +175,12 @@ export default function Onboarding() {
                   <Label htmlFor="inviteToken">Código do Convite</Label>
                   <Input
                     id="inviteToken"
-                    placeholder="Cole o token aqui (da URL do convite)"
+                    placeholder="Cole o token aqui"
                     value={inviteToken}
                     onChange={(e) => setInviteToken(e.target.value)}
                     disabled={accepting || isLoading}
                     required
                   />
-                  <p className="text-muted-foreground text-xs">
-                    O token está na URL do convite após "?token="
-                  </p>
                 </div>
                 <Button
                   type="submit"
@@ -175,17 +188,7 @@ export default function Onboarding() {
                   className="w-full"
                   disabled={accepting || isLoading || !inviteToken.trim()}
                 >
-                  {accepting ? (
-                    <>
-                      <Mail className="mr-2 h-4 w-4 animate-spin" />
-                      Entrando...
-                    </>
-                  ) : (
-                    <>
-                      <Mail className="mr-2 h-4 w-4" />
-                      Usar Convite
-                    </>
-                  )}
+                  {accepting ? 'Entrando...' : 'Usar Convite'}
                 </Button>
               </form>
             </CardContent>

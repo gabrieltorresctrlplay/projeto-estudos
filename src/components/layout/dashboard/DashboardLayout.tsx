@@ -14,17 +14,19 @@ export function DashboardLayout() {
     isLoading,
     createOrganization,
     setCurrentOrganization,
+    acceptInvite,
   } = useOrganizationContext()
 
-  // Wrapper to match CompanySelector's expected signature (temporary until we update the selector)
+  // Wrapper to match CompanySelector's expected signature
   const handleCreateCompany = async (name: string): Promise<boolean> => {
     const { orgId, error } = await createOrganization(name)
     return orgId !== null && !error
   }
 
-  // Adapt memberships to Company format for CompanySelector (temporary)
-  const companies = memberships.map((m) => m.organization!).filter(Boolean)
-  const selectCompany = (companyId: string) => setCurrentOrganization(companyId)
+  // Wrapper for join company
+  const handleJoinCompany = async (token: string) => {
+    return await acceptInvite(token)
+  }
 
   return (
     <SidebarProvider>
@@ -39,10 +41,11 @@ export function DashboardLayout() {
 
           {/* Company Selector */}
           <CompanySelector
-            companies={companies}
-            selectedCompany={currentOrganization}
-            onSelectCompany={selectCompany}
+            memberships={memberships}
+            selectedCompanyId={currentOrganization?.id || null}
+            onSelectCompany={setCurrentOrganization}
             onCreateCompany={handleCreateCompany}
+            onJoinCompany={handleJoinCompany}
             isLoading={isLoading}
           />
         </header>

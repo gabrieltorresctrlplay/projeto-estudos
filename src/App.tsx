@@ -10,13 +10,12 @@ import { OrganizationProvider } from './contexts/OrganizationContext'
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'))
-const Login = lazy(() => import('./pages/auth/Login'))
-const Register = lazy(() => import('./pages/auth/Register'))
+const Auth = lazy(() => import('./pages/auth/Auth'))
 const Onboarding = lazy(() => import('./pages/Onboarding'))
-const AcceptInvite = lazy(() => import('./pages/AcceptInvite'))
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
 const TeamMembers = lazy(() => import('./pages/dashboard/TeamMembers'))
 const Queue = lazy(() => import('./pages/dashboard/Queue'))
+const Profile = lazy(() => import('./pages/dashboard/Profile'))
 const UnderConstruction = lazy(() => import('./pages/dashboard/UnderConstruction'))
 
 function App() {
@@ -42,20 +41,19 @@ function App() {
             />
             <Route element={<PublicOnlyRoute />}>
               <Route
+                path="/auth"
+                element={<Auth />}
+              />
+              {/* Redirect old routes to /auth */}
+              <Route
                 path="/login"
-                element={<Login />}
+                element={<Auth />}
               />
               <Route
                 path="/register"
-                element={<Register />}
+                element={<Auth />}
               />
             </Route>
-
-            {/* Accept Invite - Public but checks auth */}
-            <Route
-              path="/accept-invite"
-              element={<AcceptInvite />}
-            />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
@@ -82,6 +80,14 @@ function App() {
                   element={<Queue />}
                 />
                 <Route
+                  path="/dashboard/:companyIndex/perfil"
+                  element={<Profile />}
+                />
+                <Route
+                  path="/dashboard/perfil"
+                  element={<Profile />}
+                />
+                <Route
                   path="/dashboard/:companyIndex/estoque"
                   element={
                     <UnderConstruction
@@ -105,15 +111,6 @@ function App() {
                     <UnderConstruction
                       title="Estatísticas"
                       description="Análise de dados em desenvolvimento"
-                    />
-                  }
-                />
-                <Route
-                  path="/dashboard/:companyIndex/perfil"
-                  element={
-                    <UnderConstruction
-                      title="Perfil"
-                      description="Gestão de perfil em desenvolvimento"
                     />
                   }
                 />

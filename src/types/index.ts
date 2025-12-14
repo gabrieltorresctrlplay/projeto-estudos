@@ -63,6 +63,17 @@ export interface OrganizationMember {
   organization?: Organization
 }
 
+// User Profile (stored in Firestore 'users' collection)
+export interface UserProfile {
+  id: string // same as Firebase Auth UID
+  email: string
+  displayName: string | null
+  photoURL: string | null
+  hasCompletedOnboarding: boolean // True after first onboarding (skip or complete)
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface Invite {
   id: string
   organizationId: string

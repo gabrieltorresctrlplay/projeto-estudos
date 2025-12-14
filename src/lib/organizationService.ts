@@ -1,4 +1,4 @@
-import type { Invite, MemberRole, Organization, OrganizationMember } from '@/types'
+import type { Invite, MemberRole, Organization, OrganizationMember, UserProfile } from '@/types'
 import {
   addDoc,
   collection,
@@ -14,6 +14,7 @@ import {
 import { v4 as uuidv4 } from 'uuid'
 
 import { db } from './firebase'
+import { userService } from './userService'
 
 /**
  * Organization Service - Multi-Tenant SaaS Operations
@@ -60,6 +61,7 @@ export const organizationService = {
 
   /**
    * Get all memberships for a user (WITH joined organization data)
+   * Deduplicates by organizationId to prevent UI issues from invalid data
    */
   getUserMemberships: async (
     userId: string,
@@ -97,7 +99,22 @@ export const organizationService = {
         }),
       )
 
-      return { data: memberships, error: null }
+      // Deduplicate by organizationId (keep first occurrence, which has highest role priority)
+      // Sort by role priority first: owner > admin > member
+      const rolePriority: Record<MemberRole, number> = { owner: 0, admin: 1, member: 2 }
+      const sorted = memberships.sort((a, b) => rolePriority[a.role] - rolePriority[b.role])
+
+      const seen = new Set<string>()
+      const deduplicated = sorted.filter((m) => {
+        if (seen.has(m.organizationId)) {
+          console.warn(`Duplicate membership found for org ${m.organizationId}, skipping`)
+          return false
+        }
+        seen.add(m.organizationId)
+        return true
+      })
+
+      return { data: deduplicated, error: null }
     } catch (error) {
       return { data: null, error: error as Error }
     }
@@ -145,6 +162,79 @@ export const organizationService = {
       return { error: error as Error }
     }
   },
+
+  /**
+   * Get all members of an organization with their user profiles
+   * Deduplicates by userId to prevent showing duplicate members
+   */
+  getOrganizationMembers: async (
+    orgId: string,
+  ): Promise<{
+    data: (OrganizationMember & { user?: UserProfile })[] | null
+    error: Error | null
+  }> => {
+    try {
+      // 1. Query all members of this organization
+      const q = query(collection(db, 'organization_members'), where('organizationId', '==', orgId))
+      const memberSnapshot = await getDocs(q)
+
+      // 2. Build result with joined user data, deduplicating by userId
+      const rolePriority: Record<MemberRole, number> = { owner: 0, admin: 1, member: 2 }
+      const membersByUser = new Map<
+        string,
+        { doc: (typeof memberSnapshot.docs)[0]; role: MemberRole }
+      >()
+
+      // Keep only the highest-role membership for each user
+      memberSnapshot.docs.forEach((memberDoc) => {
+        const data = memberDoc.data()
+        const userId = data.userId as string
+        const role = data.role as MemberRole
+
+        const existing = membersByUser.get(userId)
+        if (!existing || rolePriority[role] < rolePriority[existing.role]) {
+          membersByUser.set(userId, { doc: memberDoc, role })
+        }
+      })
+
+      // 3. Get unique user IDs
+      const userIds = Array.from(membersByUser.keys())
+
+      // 4. Fetch user profiles
+      const { data: usersMap } = await userService.getUserProfiles(userIds)
+
+      // 5. Build final result
+      const members = Array.from(membersByUser.values()).map(({ doc: memberDoc }) => {
+        const data = memberDoc.data()
+        const userId = data.userId as string
+
+        return {
+          id: memberDoc.id,
+          organizationId: data.organizationId as string,
+          userId,
+          role: data.role as MemberRole,
+          joinedAt: (data.joinedAt as Timestamp)?.toDate() || new Date(),
+          user: usersMap?.get(userId) || undefined,
+        }
+      })
+
+      return { data: members, error: null }
+    } catch (error) {
+      return { data: null, error: error as Error }
+    }
+  },
+
+  /**
+   * Remove a member from an organization
+   */
+  removeMember: async (memberId: string): Promise<{ error: Error | null }> => {
+    try {
+      await deleteDoc(doc(db, 'organization_members', memberId))
+      return { error: null }
+    } catch (error) {
+      return { error: error as Error }
+    }
+  },
 }
 
 // ============================================
@@ -153,29 +243,20 @@ export const organizationService = {
 
 export const inviteService = {
   /**
-   * Create an invite for a user to join an organization
-   * @param email - Email for personal invite, or null for generic invite
-   * Personal invites (with email): expire in 24 hours
-   * Generic invites (no email): expire in 5 minutes
+   * Create an invite token (always 24h expiration)
    */
   createInvite: async (
     organizationId: string,
-    email: string | null,
     role: 'admin' | 'member',
     createdBy: string,
   ): Promise<{ token: string | null; inviteId: string | null; error: Error | null }> => {
     try {
       const token = uuidv4()
       const now = new Date()
-
-      // Different expiration times based on invite type
-      const expiresAt = email
-        ? new Date(now.getTime() + 24 * 60 * 60 * 1000) // Personal: 24 hours
-        : new Date(now.getTime() + 5 * 60 * 1000) // Generic: 5 minutes
+      const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000) // Always 24 hours
 
       const inviteData = {
         organizationId,
-        email: email ? email.toLowerCase().trim() : null,
         role,
         token,
         createdBy,
@@ -263,20 +344,27 @@ export const inviteService = {
         return { memberId: null, error: new Error('Email does not match invite') }
       }
 
-      // 3. Check if user is already a member
-      const existingQ = query(
+      // 3. Check if user is already a member of THIS organization
+      // Using single where() to avoid composite index requirement
+      const userMembershipsQ = query(
         collection(db, 'organization_members'),
         where('userId', '==', userId),
-        where('organizationId', '==', invite.organizationId),
       )
-      const existing = await getDocs(existingQ)
-      if (!existing.empty) {
-        // Already a member, just delete invite
+      const userMemberships = await getDocs(userMembershipsQ)
+
+      // Filter client-side to find if already member of this org
+      const existingMembership = userMemberships.docs.find(
+        (doc) => doc.data().organizationId === invite.organizationId,
+      )
+
+      if (existingMembership) {
+        // Already a member, just delete the invite and return existing membership ID
+        console.log('User already member of org, skipping creation')
         await deleteDoc(doc(db, 'invites', invite.id))
-        return { memberId: existing.docs[0].id, error: null }
+        return { memberId: existingMembership.id, error: null }
       }
 
-      // 4. Create membership
+      // 4. Create membership (only if not already a member)
       const memberData = {
         organizationId: invite.organizationId,
         userId,
@@ -330,6 +418,37 @@ export const inviteService = {
       return { data: invites, error: null }
     } catch (error) {
       return { data: null, error: error as Error }
+    }
+  },
+
+  /**
+   * Delete a single invite
+   */
+  deleteInvite: async (inviteId: string): Promise<{ error: Error | null }> => {
+    try {
+      await deleteDoc(doc(db, 'invites', inviteId))
+      return { error: null }
+    } catch (error) {
+      return { error: error as Error }
+    }
+  },
+
+  /**
+   * Delete all invites for an organization
+   */
+  deleteAllOrganizationInvites: async (
+    organizationId: string,
+  ): Promise<{ deletedCount: number; error: Error | null }> => {
+    try {
+      const q = query(collection(db, 'invites'), where('organizationId', '==', organizationId))
+      const snapshot = await getDocs(q)
+
+      const deletePromises = snapshot.docs.map((doc) => deleteDoc(doc.ref))
+      await Promise.all(deletePromises)
+
+      return { deletedCount: snapshot.docs.length, error: null }
+    } catch (error) {
+      return { deletedCount: 0, error: error as Error }
     }
   },
 }

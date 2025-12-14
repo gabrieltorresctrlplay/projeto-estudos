@@ -61,16 +61,43 @@ export function AppSidebar() {
   const { state } = useSidebar()
   const { memberships, currentOrganization } = useOrganizationContext()
 
+  // Check if user is a visitor (no memberships)
+  const isVisitor = memberships.length === 0
+
   // Calculate dashboard URL based on current organization
   const currentOrgIndex = currentOrganization
     ? memberships.findIndex((m) => m.organizationId === currentOrganization.id)
     : 0
-  const dashboardUrl = currentOrgIndex !== -1 ? `/dashboard/${currentOrgIndex}` : '/dashboard/0'
+  const dashboardUrl = currentOrgIndex !== -1 ? `/dashboard/${currentOrgIndex}` : '/dashboard'
 
   const handleLogout = async () => {
     await authService.signOut()
-    navigate('/login')
+    navigate('/auth')
   }
+
+  // Full menu items for members
+  const memberMenuItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: dashboardUrl, tooltip: 'Dashboard' },
+    { icon: Users, label: 'Equipe', path: `${dashboardUrl}/team`, tooltip: 'Equipe' },
+    { icon: List, label: 'Fila', path: `${dashboardUrl}/fila`, tooltip: 'Fila' },
+    { icon: Package, label: 'Estoque', path: `${dashboardUrl}/estoque`, tooltip: 'Estoque' },
+    { icon: ShoppingCart, label: 'Pedidos', path: `${dashboardUrl}/pedidos`, tooltip: 'Pedidos' },
+    {
+      icon: BarChart3,
+      label: 'Estatísticas',
+      path: `${dashboardUrl}/estatisticas`,
+      tooltip: 'Estatísticas',
+    },
+    { icon: UserIcon, label: 'Perfil', path: `${dashboardUrl}/perfil`, tooltip: 'Perfil' },
+  ]
+
+  // Minimal menu items for visitors
+  const visitorMenuItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', tooltip: 'Dashboard' },
+    { icon: UserIcon, label: 'Perfil', path: '/dashboard/perfil', tooltip: 'Perfil' },
+  ]
+
+  const menuItems = isVisitor ? visitorMenuItems : memberMenuItems
 
   return (
     <Sidebar collapsible="icon">
@@ -87,7 +114,7 @@ export function AppSidebar() {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">NerfasInc</span>
-                  <span className="truncate text-xs">Enterprise</span>
+                  <span className="truncate text-xs">{isVisitor ? 'Visitante' : 'Enterprise'}</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -99,99 +126,23 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Dashboard"
-                  isActive={
-                    window.location.pathname === dashboardUrl ||
-                    window.location.pathname === '/dashboard'
-                  }
-                >
-                  <Link to={dashboardUrl}>
-                    <LayoutDashboard />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Equipe"
-                  isActive={window.location.pathname.includes('/team')}
-                >
-                  <Link to={`${dashboardUrl}/team`}>
-                    <Users />
-                    <span>Equipe</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Fila"
-                  isActive={window.location.pathname.includes('/fila')}
-                >
-                  <Link to={`${dashboardUrl}/fila`}>
-                    <List />
-                    <span>Fila</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Estoque"
-                  isActive={window.location.pathname.includes('/estoque')}
-                >
-                  <Link to={`${dashboardUrl}/estoque`}>
-                    <Package />
-                    <span>Estoque</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Pedidos"
-                  isActive={window.location.pathname.includes('/pedidos')}
-                >
-                  <Link to={`${dashboardUrl}/pedidos`}>
-                    <ShoppingCart />
-                    <span>Pedidos</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Estatísticas"
-                  isActive={window.location.pathname.includes('/estatisticas')}
-                >
-                  <Link to={`${dashboardUrl}/estatisticas`}>
-                    <BarChart3 />
-                    <span>Estatísticas</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  tooltip="Perfil"
-                  isActive={window.location.pathname.includes('/perfil')}
-                >
-                  <Link to={`${dashboardUrl}/perfil`}>
-                    <UserIcon />
-                    <span>Perfil</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.path}>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={item.tooltip}
+                    isActive={
+                      window.location.pathname === item.path ||
+                      window.location.pathname.includes(item.path.split('/').pop() || '')
+                    }
+                  >
+                    <Link to={item.path}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -251,7 +202,11 @@ export function AppSidebar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      navigate(isVisitor ? '/dashboard/perfil' : `${dashboardUrl}/perfil`)
+                    }
+                  >
                     <UserIcon className="mr-2 h-4 w-4" />
                     Ver Perfil
                   </DropdownMenuItem>
