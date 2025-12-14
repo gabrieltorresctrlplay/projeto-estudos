@@ -33,10 +33,10 @@ export function DashboardLayout() {
       <AppSidebar />
       <SidebarInset>
         {/* Header with trigger and company selector */}
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <header className="flex h-16 shrink-0 items-center gap-4 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="flex flex-1 items-center gap-2">
-            <h1 className="text-lg font-semibold">Dashboard</h1>
+            <h1 className="type-h4 text-foreground">Dashboard</h1>
           </div>
 
           {/* Company Selector */}
@@ -51,13 +51,13 @@ export function DashboardLayout() {
         </header>
 
         {/* Main content */}
-        <div className="flex flex-1 flex-col gap-4 p-4">
-          <div className="bg-muted/50 min-h-screen flex-1 rounded-xl p-4">
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
+          <div className="bg-muted/30 min-h-screen flex-1 rounded-xl border border-dashed p-4 shadow-sm lg:p-6">
             <PageTransition>
               <Outlet />
             </PageTransition>
           </div>
-        </div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )

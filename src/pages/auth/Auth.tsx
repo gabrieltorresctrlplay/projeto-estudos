@@ -43,21 +43,23 @@ export default function Auth() {
       title="Bem-vindo"
       subtitle="Entre com sua conta Google para continuar"
     >
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
-          <CardTitle>Entrar</CardTitle>
-          <CardDescription>Use sua conta Google para acessar a plataforma</CardDescription>
+          <CardTitle className="type-h3">Entrar</CardTitle>
+          <CardDescription className="type-muted">
+            Use sua conta Google para acessar a plataforma
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
-            <div className="border-destructive/20 bg-destructive/10 text-destructive rounded border p-3 text-center text-sm font-medium">
+            <div className="border-destructive/20 bg-destructive/10 text-destructive rounded-md border p-3 text-center text-sm font-medium">
               {error}
             </div>
           )}
 
           <Button
             variant="outline"
-            className="bg-background w-full"
+            className="bg-background hover:bg-muted/50 w-full transition-colors"
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
@@ -73,14 +75,14 @@ export default function Auth() {
             Ao continuar, você aceita nossos{' '}
             <a
               href="#"
-              className="underline"
+              className="hover:text-foreground underline transition-colors"
             >
               Termos de Serviço
             </a>{' '}
             e{' '}
             <a
               href="#"
-              className="underline"
+              className="hover:text-foreground underline transition-colors"
             >
               Política de Privacidade
             </a>
