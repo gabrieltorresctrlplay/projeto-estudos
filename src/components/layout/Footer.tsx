@@ -5,7 +5,7 @@ import { COMPANY } from '@/constants'
  */
 export function Footer() {
   return (
-    <footer className="bg-muted/87 border-border mt-auto w-full border-t">
+    <footer className="bg-muted/70 border-border mt-auto w-full border-t">
       <div className="text-muted-foreground flex h-16 items-center justify-between px-4 text-sm">
         <p>
           © {COMPANY.year} {COMPANY.name}. Todos os direitos reservados.

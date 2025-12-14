@@ -126,14 +126,14 @@ export default function Login() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background text-muted-foreground px-2">Ou continue com</span>
+              <span className="bg-card text-muted-foreground px-2">Ou continue com</span>
             </div>
           </div>
 
           <Button
             variant="outline"
             type="button"
-            className="bg-background w-full shadow-lg"
+            className="bg-background w-full"
             onClick={handleGoogleLogin}
             disabled={loading}
           >

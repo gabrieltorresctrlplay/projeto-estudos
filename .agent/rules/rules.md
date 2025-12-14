@@ -2,8 +2,6 @@
 trigger: always_on
 ---
 
-# Regras para Gemini AI
-
 ## 1. Context7
 
 - **SEMPRE** use o MCP Context7 para consultar documentação de bibliotecas e frameworks.

@@ -14,7 +14,7 @@ service cloud.firestore {
       
       // Permitir criação apenas se o usuário está definindo a si mesmo como dono
       allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
-      
+
       // Permitir atualização apenas se o usuário é o dono da empresa
       allow update: if request.auth != null && resource.data.ownerId == request.auth.uid;
       
@@ -35,4 +35,3 @@ service cloud.firestore {
     }
   }
 }
-

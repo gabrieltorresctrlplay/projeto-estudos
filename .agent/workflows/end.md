@@ -40,10 +40,10 @@ git add .
 git commit -m "docs: atualização automática - sessão encerrada"
 ```
 
-6. Enviar para o repositório remoto (branch main)
+6. Enviar para o repositório remoto ATUAL!
 
 ```bash
-git push origin main
+git push origin REPOATUAL!
 ```
 
 ## Notas:

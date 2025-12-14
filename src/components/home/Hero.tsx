@@ -25,7 +25,7 @@ export const Hero = memo(function Hero() {
         className="text-foreground text-3xl font-extrabold tracking-tight text-balance sm:text-5xl md:text-6xl lg:text-7xl"
       >
         Potencialize sua <br className="hidden sm:block" />
-        <span className="from-primary to-muted-foreground inline-block bg-linear-to-r bg-clip-text leading-relaxed text-transparent">
+        <span className="from-primary to-primary inline-block bg-linear-to-r bg-clip-text leading-relaxed text-transparent">
           produtividade global.
         </span>
       </motion.h1>
@@ -44,7 +44,7 @@ export const Hero = memo(function Hero() {
       >
         <Button
           size="lg"
-          className="h-10 rounded-full px-6 text-sm shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:h-12 sm:px-8 sm:text-base"
+          className="h-10 rounded-full px-6 text-sm transition-all hover:scale-105 sm:h-12 sm:px-8 sm:text-base"
           aria-label="Começar teste grátis de 14 dias"
           asChild
         >

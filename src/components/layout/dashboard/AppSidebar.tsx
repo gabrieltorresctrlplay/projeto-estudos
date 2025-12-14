@@ -1,5 +1,5 @@
 import LogoSvg from '@/assets/logo.svg?react'
-import { useCompanyContext } from '@/contexts/CompanyContext'
+import { useOrganizationContext } from '@/contexts/OrganizationContext'
 import {
   BarChart3,
   ChevronsUpDown,
@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   Sun,
   User as UserIcon,
+  Users,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -58,14 +59,13 @@ export function AppSidebar() {
   const navigate = useNavigate()
   const { setTheme } = useTheme()
   const { state } = useSidebar()
-  const { companies, selectedCompany } = useCompanyContext()
+  const { memberships, currentOrganization } = useOrganizationContext()
 
-  // Calculate dashboard URL based on current company
-  const currentCompanyIndex = selectedCompany
-    ? companies.findIndex((c) => c.id === selectedCompany.id)
+  // Calculate dashboard URL based on current organization
+  const currentOrgIndex = currentOrganization
+    ? memberships.findIndex((m) => m.organizationId === currentOrganization.id)
     : 0
-  const dashboardUrl =
-    currentCompanyIndex !== -1 ? `/dashboard/${currentCompanyIndex}` : '/dashboard/0'
+  const dashboardUrl = currentOrgIndex !== -1 ? `/dashboard/${currentOrgIndex}` : '/dashboard/0'
 
   const handleLogout = async () => {
     await authService.signOut()
@@ -111,6 +111,19 @@ export function AppSidebar() {
                   <Link to={dashboardUrl}>
                     <LayoutDashboard />
                     <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Equipe"
+                  isActive={window.location.pathname.includes('/team')}
+                >
+                  <Link to={`${dashboardUrl}/team`}>
+                    <Users />
+                    <span>Equipe</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

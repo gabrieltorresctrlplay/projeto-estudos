@@ -1,20 +1,30 @@
-import { CompanyProvider, useCompanyContext } from '@/contexts/CompanyContext'
+import { useOrganizationContext } from '@/contexts/OrganizationContext'
 import { Outlet } from 'react-router-dom'
 
 import { CompanySelector } from '@/components/ui/company-selector'
+import { PageTransition } from '@/components/ui/page-transition'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 
 import { AppSidebar } from './AppSidebar'
 
-function DashboardContent() {
-  const { companies, selectedCompany, isLoading, createCompany, selectCompany } =
-    useCompanyContext()
+export function DashboardLayout() {
+  const {
+    memberships,
+    currentOrganization,
+    isLoading,
+    createOrganization,
+    setCurrentOrganization,
+  } = useOrganizationContext()
 
-  // Wrapper to match CompanySelector's expected signature
+  // Wrapper to match CompanySelector's expected signature (temporary until we update the selector)
   const handleCreateCompany = async (name: string): Promise<boolean> => {
-    const result = await createCompany(name)
-    return result !== null
+    const { orgId, error } = await createOrganization(name)
+    return orgId !== null && !error
   }
+
+  // Adapt memberships to Company format for CompanySelector (temporary)
+  const companies = memberships.map((m) => m.organization!).filter(Boolean)
+  const selectCompany = (companyId: string) => setCurrentOrganization(companyId)
 
   return (
     <SidebarProvider>
@@ -30,7 +40,7 @@ function DashboardContent() {
           {/* Company Selector */}
           <CompanySelector
             companies={companies}
-            selectedCompany={selectedCompany}
+            selectedCompany={currentOrganization}
             onSelectCompany={selectCompany}
             onCreateCompany={handleCreateCompany}
             isLoading={isLoading}
@@ -40,18 +50,12 @@ function DashboardContent() {
         {/* Main content */}
         <div className="flex flex-1 flex-col gap-4 p-4">
           <div className="bg-muted/50 min-h-screen flex-1 rounded-xl p-4">
-            <Outlet />
+            <PageTransition>
+              <Outlet />
+            </PageTransition>
           </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
-}
-
-export function DashboardLayout() {
-  return (
-    <CompanyProvider>
-      <DashboardContent />
-    </CompanyProvider>
   )
 }

@@ -3,7 +3,6 @@ import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
-import { ConcreteBackground } from '@/components/ui/concrete-background'
 import { ModeToggle } from '@/components/theme/mode-toggle'
 
 interface AuthLayoutProps {
@@ -18,13 +17,17 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden">
       {/* Concrete Texture Background */}
-      <ConcreteBackground />
+      {/* Static Grid Overlay */}
+      <div
+        className="pointer-events-none fixed inset-0 -z-20 h-full w-full bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-size-[14px_24px] opacity-10"
+        aria-hidden="true"
+      />
 
       {/* Back Button */}
       <Button
         variant="outline"
         size="icon"
-        className="bg-background/50 text-foreground hover:bg-background/80 border-border absolute top-4 left-4 z-20 border shadow-md backdrop-blur-sm md:top-8 md:left-8"
+        className="bg-background/50 text-foreground hover:bg-background/80 border-border absolute top-4 left-4 z-20 border backdrop-blur-sm md:top-8 md:left-8"
         onClick={() => navigate('/')}
       >
         <ArrowLeft className="h-4 w-4" />

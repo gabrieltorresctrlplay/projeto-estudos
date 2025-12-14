@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Company } from '@/types'
+import type { Company, Organization } from '@/types'
 import { Building2, ChevronDown, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -15,8 +15,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 interface CompanySelectorProps {
-  companies: Company[]
-  selectedCompany: Company | null
+  companies: (Company | Organization)[]
+  selectedCompany: (Company | Organization) | null
   onSelectCompany: (companyId: string) => void
   onCreateCompany: (name: string) => Promise<boolean>
   isLoading?: boolean
