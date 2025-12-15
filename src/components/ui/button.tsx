@@ -19,7 +19,7 @@ const buttonVariants = cva(
           'text-foreground hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
         link: 'text-primary underline-offset-4 hover:underline',
         premium:
-          'bg-gradient-to-r from-primary to-chart-2 text-primary-foreground shadow-md hover:shadow-lg hover:shadow-primary/25 hover:scale-[1.02] active:scale-[0.98]',
+          'bg-gradient-to-r from-primary to-chart-5 text-primary-foreground shadow-md hover:shadow-lg hover:shadow-primary/25 hover:scale-[1.02] active:scale-[0.98]',
         selector:
           'bg-background/50 text-foreground hover:bg-background/80 border-border border backdrop-blur-sm',
       },
