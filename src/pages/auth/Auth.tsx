@@ -43,24 +43,26 @@ export default function Auth() {
       title="Bem-vindo"
       subtitle="Entre com sua conta Google para continuar"
     >
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle>Entrar</CardTitle>
+      <Card className="border-border/50 bg-card/50 w-full max-w-md shadow-2xl backdrop-blur-xl">
+        <div className="from-primary/5 pointer-events-none absolute inset-0 bg-linear-to-br via-transparent to-transparent" />
+        <CardHeader className="relative text-center">
+          <CardTitle className="text-2xl">Entrar</CardTitle>
           <CardDescription>Use sua conta Google para acessar a plataforma</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="relative space-y-4">
           {error && (
-            <div className="border-destructive/20 bg-destructive/10 text-destructive rounded border p-3 text-center text-sm font-medium">
+            <div className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border p-3 text-center text-sm font-medium shadow-sm">
               {error}
             </div>
           )}
 
           <Button
             variant="outline"
-            className="bg-background w-full"
+            className="bg-background/80 hover:bg-background hover:border-primary/50 group relative h-11 w-full overflow-hidden text-base transition-all hover:shadow-md active:scale-95"
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
+            <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/5 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
             {loading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -73,14 +75,14 @@ export default function Auth() {
             Ao continuar, você aceita nossos{' '}
             <a
               href="#"
-              className="underline"
+              className="hover:text-primary underline transition-colors"
             >
               Termos de Serviço
             </a>{' '}
             e{' '}
             <a
               href="#"
-              className="underline"
+              className="hover:text-primary underline transition-colors"
             >
               Política de Privacidade
             </a>

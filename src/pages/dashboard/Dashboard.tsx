@@ -169,27 +169,31 @@ export default function Dashboard() {
   // Visitor Dashboard - show action cards
   if (isVisitor) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Bem-vindo, Visitante!</h2>
-          <p className="text-muted-foreground">
-            Crie uma organização ou entre em uma existente para começar.
+      <div className="animate-fade-in-up space-y-8">
+        <div className="text-center md:text-left">
+          <h2 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-4xl font-bold tracking-tight text-transparent">
+            Bem-vindo ao Supabase Space
+          </h2>
+          <p className="text-muted-foreground mt-2 text-lg">
+            Crie uma organização ou entre em uma existente para começar sua jornada.
           </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Create Organization Card */}
-          <Card>
-            <CardHeader>
+          <Card className="group border-border hover:border-primary/50 relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
+            <div className="from-primary/5 absolute inset-0 bg-linear-to-br to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+            <CardHeader className="relative z-10 text-center">
               <div className="mb-4 flex justify-center">
-                <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-full">
-                  <Building2 className="h-6 w-6" />
+                <div className="from-primary/20 to-primary/5 text-primary shadow-primary/10 ring-primary/20 group-hover:shadow-primary/30 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br shadow-xl ring-1 transition-all duration-300 group-hover:scale-110">
+                  <Building2 className="h-8 w-8" />
                 </div>
               </div>
-              <CardTitle>Criar Organização</CardTitle>
+              <CardTitle className="text-xl">Criar Organização</CardTitle>
               <CardDescription>Comece sua própria organização do zero</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative z-10">
               <form
                 onSubmit={handleCreateOrg}
                 className="space-y-4"
@@ -203,11 +207,12 @@ export default function Dashboard() {
                     onChange={(e) => setOrgName(e.target.value)}
                     disabled={creating}
                     required
+                    className="bg-background/50 focus:ring-primary/50 backdrop-blur-sm transition-all"
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full transition-all duration-200 active:scale-95"
                   disabled={creating || !orgName.trim()}
                 >
                   {creating ? 'Criando...' : 'Criar Organização'}
@@ -217,17 +222,19 @@ export default function Dashboard() {
           </Card>
 
           {/* Join Organization Card */}
-          <Card>
-            <CardHeader>
+          <Card className="group border-border hover:border-primary/50 relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
+            <div className="from-secondary/5 absolute inset-0 bg-linear-to-br to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+            <CardHeader className="relative z-10 text-center">
               <div className="mb-4 flex justify-center">
-                <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-full">
-                  <Ticket className="h-6 w-6" />
+                <div className="from-secondary/20 to-secondary/5 text-foreground shadow-secondary/10 ring-secondary/20 group-hover:shadow-secondary/30 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br shadow-xl ring-1 transition-all duration-300 group-hover:scale-110">
+                  <Ticket className="h-8 w-8" />
                 </div>
               </div>
-              <CardTitle>Entrar com Token</CardTitle>
+              <CardTitle className="text-xl">Entrar com Token</CardTitle>
               <CardDescription>Cole o código de convite que você recebeu</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative z-10">
               <form
                 onSubmit={handleJoinOrg}
                 className="space-y-4"
@@ -241,12 +248,13 @@ export default function Dashboard() {
                     onChange={(e) => setInviteToken(e.target.value)}
                     disabled={accepting}
                     required
+                    className="bg-background/50 focus:ring-secondary/50 backdrop-blur-sm transition-all"
                   />
                 </div>
                 <Button
                   type="submit"
                   variant="outline"
-                  className="w-full"
+                  className="hover:bg-secondary/20 w-full transition-all duration-200 active:scale-95"
                   disabled={accepting || !inviteToken.trim()}
                 >
                   {accepting ? 'Entrando...' : 'Usar Convite'}
@@ -257,7 +265,7 @@ export default function Dashboard() {
         </div>
 
         {error && (
-          <div className="border-destructive/20 bg-destructive/10 text-destructive rounded border p-3 text-center text-sm">
+          <div className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border p-4 text-center text-sm shadow-lg backdrop-blur-md">
             {error}
           </div>
         )}
@@ -284,10 +292,12 @@ export default function Dashboard() {
 
   // Member Dashboard - show organization overview
   return (
-    <div className="space-y-6">
+    <div className="animate-fade-in-up space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Página Inicial</h2>
-        <p className="text-muted-foreground">
+        <h2 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-4xl font-bold tracking-tight text-transparent">
+          Página Inicial
+        </h2>
+        <p className="text-muted-foreground mt-2 text-lg">
           Bem-vindo de volta, {user?.displayName || user?.email?.split('@')[0]}.
         </p>
       </div>

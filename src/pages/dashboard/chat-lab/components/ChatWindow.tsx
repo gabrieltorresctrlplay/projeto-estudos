@@ -155,15 +155,15 @@ export function ChatWindow({ chatId, otherUser, onBack }: ChatWindowProps) {
                   initial={{ opacity: 0, scale: 0.9, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   className={cn(
-                    'relative max-w-[80%] rounded-lg px-3 py-1.5 text-sm break-words shadow-sm md:max-w-[60%]',
+                    'relative max-w-[80%] rounded-lg px-3 py-1.5 text-sm wrap-break-word shadow-sm md:max-w-[60%]',
                     isMe
-                      ? 'dark:bg-primary text-foreground rounded-tr-none bg-[#d9fdd3]'
-                      : 'dark:bg-muted text-foreground rounded-tl-none bg-white',
+                      ? 'dark:bg-primary dark:text-primary-foreground rounded-tr-none bg-[#d9fdd3] text-gray-900'
+                      : 'dark:bg-muted dark:text-foreground rounded-tl-none bg-white text-gray-900',
                   )}
                 >
                   <p>{msg.text}</p>
                   <span className="mt-1 flex items-center justify-end gap-1 text-[10px] opacity-60">
-                    {msg.createdAt ? format(msg.createdAt.toDate(), 'HH:mm') : '...'}
+                    {msg.createdAt?.toDate ? format(msg.createdAt.toDate(), 'HH:mm') : '...'}
                     {isMe && (
                       <span>✓✓</span> // Blue ticks placeholder
                     )}

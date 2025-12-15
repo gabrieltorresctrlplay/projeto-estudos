@@ -56,33 +56,42 @@ export default function Profile() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="animate-fade-in-up space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Perfil</h2>
-        <p className="text-muted-foreground">Gerencie suas informações pessoais</p>
+        <h2 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-4xl font-bold tracking-tight text-transparent">
+          Perfil
+        </h2>
+        <p className="text-muted-foreground mt-2 text-lg">Gerencie suas informações pessoais</p>
       </div>
 
-      <Card>
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
         <CardHeader>
           <CardTitle>Informações da Conta</CardTitle>
           <CardDescription>Seus dados vinculados à conta Google</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Avatar */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             {profile?.photoURL ? (
-              <img
-                src={profile.photoURL}
-                alt="Avatar"
-                className="h-20 w-20 rounded-full object-cover"
-              />
+              <div className="group relative">
+                <div className="from-primary/30 to-chart-2/30 absolute -inset-1 rounded-full bg-linear-to-br blur-sm transition-all group-hover:blur-md" />
+                <img
+                  src={profile.photoURL}
+                  alt="Avatar"
+                  className="relative h-24 w-24 rounded-full object-cover shadow-lg ring-2 ring-white/10 transition-transform group-hover:scale-105"
+                />
+              </div>
             ) : (
-              <div className="bg-primary/10 text-primary flex h-20 w-20 items-center justify-center rounded-full">
-                <User className="h-10 w-10" />
+              <div className="group relative">
+                <div className="from-primary/30 to-chart-2/30 absolute -inset-1 rounded-full bg-linear-to-br blur-sm transition-all group-hover:blur-md" />
+                <div className="from-primary/20 to-success/20 text-primary relative flex h-24 w-24 items-center justify-center rounded-full border border-white/5 bg-linear-to-br shadow-lg transition-transform group-hover:scale-105">
+                  <User className="h-12 w-12" />
+                </div>
               </div>
             )}
             <div>
-              <p className="text-muted-foreground text-sm">Foto vinculada à sua conta Google</p>
+              <p className="text-lg font-medium">Foto do Perfil</p>
+              <p className="text-muted-foreground text-sm">Vinculada à sua conta Google</p>
             </div>
           </div>
 
@@ -94,7 +103,7 @@ export default function Profile() {
               type="email"
               value={profile?.email || ''}
               disabled
-              className="bg-muted"
+              className="bg-muted/50 border-border/50"
             />
             <p className="text-muted-foreground text-xs">
               Email vinculado à sua conta Google (não editável)
@@ -110,14 +119,16 @@ export default function Profile() {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Seu nome"
+              className="bg-background/50 focus:bg-background transition-colors"
             />
           </div>
 
           {/* Save Button */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 pt-4">
             <Button
               onClick={handleSave}
               disabled={saving}
+              className="shadow-primary/20 shadow-lg transition-all active:scale-95"
             >
               {saving ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -126,7 +137,11 @@ export default function Profile() {
               )}
               Salvar Alterações
             </Button>
-            {success && <span className="text-sm text-green-500">Salvo com sucesso!</span>}
+            {success && (
+              <span className="text-success animate-fade-in text-sm font-medium">
+                Salvo com sucesso!
+              </span>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -42,9 +42,15 @@ export default function Home() {
       transition={{ duration: 0.5, ease: 'easeOut' }}
       className="relative flex h-full flex-col items-center justify-center overflow-hidden px-4 py-2 sm:py-4 md:py-0"
     >
+      {/* Ambient Glow Background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="bg-primary/5 absolute -top-1/4 left-1/3 h-96 w-96 rounded-full blur-3xl" />
+        <div className="bg-chart-2/5 absolute right-1/3 -bottom-1/4 h-96 w-96 rounded-full blur-3xl" />
+      </div>
+
       {/* Hero Section */}
       <section
-        className="flex w-full max-w-6xl flex-col items-center justify-center gap-3 text-center sm:gap-6 md:gap-12 lg:gap-16"
+        className="relative flex w-full max-w-6xl flex-col items-center justify-center gap-3 text-center sm:gap-6 md:gap-12 lg:gap-16"
         aria-labelledby="hero-title"
       >
         <Hero />

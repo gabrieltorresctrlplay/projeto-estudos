@@ -81,20 +81,27 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="bg-background relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+      {/* Ambient Glow Background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="bg-primary/10 absolute top-1/4 left-1/4 h-96 w-96 rounded-full opacity-50 mix-blend-screen blur-[128px]" />
+        <div className="bg-brand-500/10 absolute right-1/4 bottom-1/4 h-96 w-96 rounded-full opacity-50 mix-blend-screen blur-[128px]" />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-4xl"
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="relative w-full max-w-4xl"
       >
         {/* Header buttons */}
-        <div className="absolute top-4 right-4 flex gap-2">
+        <div className="absolute top-4 right-4 z-10 flex gap-2">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={handleSkip}
             disabled={skipping}
+            className="text-muted-foreground hover:text-foreground"
           >
             <ArrowRight className="mr-2 h-4 w-4" />
             {skipping ? 'Pulando...' : 'Pular'}
@@ -103,32 +110,39 @@ export default function Onboarding() {
             variant="ghost"
             size="sm"
             onClick={handleLogout}
+            className="text-muted-foreground hover:text-destructive transition-colors"
           >
             <LogOut className="mr-2 h-4 w-4" />
             Sair
           </Button>
         </div>
 
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold">Bem-vindo!</h1>
-          <p className="text-muted-foreground mt-2">
-            Crie uma organização, entre em uma existente, ou pule para explorar como visitante.
+        <div className="mb-12 space-y-4 text-center">
+          <h1 className="text-foreground text-4xl font-bold tracking-tight md:text-5xl">
+            Bem-vindo ao{' '}
+            <span className="from-primary to-brand-400 bg-linear-to-r bg-clip-text text-transparent">
+              Supabase Space
+            </span>
+          </h1>
+          <p className="text-muted-foreground mx-auto max-w-2xl text-lg leading-relaxed md:text-xl">
+            Crie uma organização para começar ou entre em uma existente.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="relative z-10 grid gap-6 md:grid-cols-2">
           {/* Create Organization */}
-          <Card>
-            <CardHeader>
-              <div className="mb-4 flex justify-center">
-                <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-full">
-                  <Building2 className="h-6 w-6" />
+          <Card className="group border-border/50 bg-card/50 hover:bg-card/80 hover:border-primary/20 relative overflow-hidden backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+            <div className="from-primary/5 absolute inset-0 bg-linear-to-br via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            <CardHeader className="relative pb-2 text-center">
+              <div className="mb-6 flex justify-center">
+                <div className="from-primary/20 to-primary/5 text-primary shadow-primary/10 flex h-20 w-20 items-center justify-center rounded-3xl bg-linear-to-br shadow-xl ring-1 ring-white/10 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
+                  <Building2 className="h-10 w-10" />
                 </div>
               </div>
-              <CardTitle>Criar Organização</CardTitle>
-              <CardDescription>Comece sua própria organização do zero</CardDescription>
+              <CardTitle className="text-2xl">Criar Organização</CardTitle>
+              <CardDescription>Comece sua jornada do zero</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative">
               <form
                 onSubmit={handleCreateOrg}
                 className="space-y-4"
@@ -137,16 +151,17 @@ export default function Onboarding() {
                   <Label htmlFor="orgName">Nome da Organização</Label>
                   <Input
                     id="orgName"
-                    placeholder="Minha Empresa"
+                    placeholder="Ex: Acme Inc."
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
                     disabled={creating || isLoading}
                     required
+                    className="bg-background/50 focus:bg-background h-11 transition-colors"
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="shadow-primary/20 h-11 w-full shadow-lg transition-all active:scale-95"
                   disabled={creating || isLoading || !orgName.trim()}
                 >
                   {creating ? 'Criando...' : 'Criar Organização'}
@@ -156,17 +171,18 @@ export default function Onboarding() {
           </Card>
 
           {/* Join Organization */}
-          <Card>
-            <CardHeader>
-              <div className="mb-4 flex justify-center">
-                <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-full">
-                  <Ticket className="h-6 w-6" />
+          <Card className="group border-border/50 bg-card/50 hover:bg-card/80 hover:border-primary/20 relative overflow-hidden backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+            <div className="from-secondary/5 absolute inset-0 bg-gradient-to-br via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            <CardHeader className="relative pb-2 text-center">
+              <div className="mb-6 flex justify-center">
+                <div className="from-secondary/20 to-secondary/5 text-secondary shadow-secondary/10 flex h-20 w-20 items-center justify-center rounded-3xl bg-linear-to-br shadow-xl ring-1 ring-white/10 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3">
+                  <Ticket className="h-10 w-10" />
                 </div>
               </div>
-              <CardTitle>Entrar com Token</CardTitle>
-              <CardDescription>Cole o código de convite que você recebeu</CardDescription>
+              <CardTitle className="text-2xl">Entrar com Token</CardTitle>
+              <CardDescription>Use um convite existente</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative">
               <form
                 onSubmit={handleJoinOrg}
                 className="space-y-4"
@@ -175,17 +191,18 @@ export default function Onboarding() {
                   <Label htmlFor="inviteToken">Código do Convite</Label>
                   <Input
                     id="inviteToken"
-                    placeholder="Cole o token aqui"
+                    placeholder="Cole seu token..."
                     value={inviteToken}
                     onChange={(e) => setInviteToken(e.target.value)}
                     disabled={accepting || isLoading}
                     required
+                    className="bg-background/50 focus:bg-background h-11 transition-colors"
                   />
                 </div>
                 <Button
                   type="submit"
                   variant="outline"
-                  className="w-full"
+                  className="hover:bg-secondary/10 hover:text-secondary hover:border-secondary/20 h-11 w-full transition-all active:scale-95"
                   disabled={accepting || isLoading || !inviteToken.trim()}
                 >
                   {accepting ? 'Entrando...' : 'Usar Convite'}
@@ -197,9 +214,9 @@ export default function Onboarding() {
 
         {error && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="border-destructive/20 bg-destructive/10 text-destructive mt-6 rounded border p-3 text-center text-sm"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="border-destructive/20 bg-destructive/10 text-destructive mt-8 rounded-xl border p-4 text-center text-sm font-medium"
           >
             {error}
           </motion.div>

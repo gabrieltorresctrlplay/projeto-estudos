@@ -19,6 +19,10 @@ const Queue = lazy(() => import('./pages/dashboard/Queue'))
 const Profile = lazy(() => import('./pages/dashboard/Profile'))
 const UnderConstruction = lazy(() => import('./pages/dashboard/UnderConstruction'))
 const ChatLabPage = lazy(() => import('./pages/dashboard/chat-lab/ChatLabPage'))
+// Queue System Pages
+const TotemPage = lazy(() => import('./pages/queue/TotemPage'))
+const MonitorPage = lazy(() => import('./pages/queue/MonitorPage'))
+const CounterPage = lazy(() => import('./pages/queue/CounterPage'))
 // E2E testing only - works with Firebase Emulator
 const E2ELogin = lazy(() => import('./pages/E2ELogin'))
 
@@ -69,12 +73,27 @@ function App() {
               />
             </Route>
 
+            {/* Queue Public Pages - Fullscreen without auth */}
+            <Route
+              path="/queue/:queueId/totem"
+              element={<TotemPage />}
+            />
+            <Route
+              path="/queue/:queueId/monitor"
+              element={<MonitorPage />}
+            />
+
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
               {/* Onboarding */}
               <Route
                 path="/onboarding"
                 element={<Onboarding />}
+              />
+              {/* Queue Counter - Requires auth */}
+              <Route
+                path="/queue/:queueId/counter/:counterId"
+                element={<CounterPage />}
               />
               <Route element={<DashboardLayout />}>
                 <Route

@@ -12,26 +12,29 @@ import { ChatWindow } from './components/ChatWindow'
 // Placeholder components - will be extracted later
 
 const EmptyState = () => (
-  <div className="bg-muted/30 flex flex-1 flex-col items-center justify-center p-8 text-center">
+  <div className="bg-muted/10 flex flex-1 flex-col items-center justify-center p-8 text-center backdrop-blur-3xl">
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.5, type: 'spring' }}
-      className="max-w-md space-y-4"
+      className="max-w-md space-y-6"
     >
-      <div className="bg-primary/5 mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full">
-        <MessageSquare className="text-primary/50 h-10 w-10" />
+      <div className="from-primary/20 to-primary/5 mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-linear-to-br shadow-2xl ring-1 ring-white/10">
+        <MessageSquare className="text-primary h-10 w-10" />
       </div>
-      <h2 className="text-2xl font-bold tracking-tight">WhatsApp Web Style</h2>
-      <p className="text-muted-foreground">
-        Selecione uma conversa ou inicie um novo chat para começar a enviar mensagens em tempo real.
-      </p>
-      <div className="text-muted-foreground/50 flex justify-center gap-4 pt-4 text-xs">
-        <span>Framer Motion</span>
+      <div>
+        <h2 className="mb-2 text-2xl font-bold tracking-tight">Supabase Chat</h2>
+        <p className="text-muted-foreground leading-relaxed">
+          Selecione uma conversa ou inicie um novo chat para começar a enviar mensagens em tempo
+          real.
+        </p>
+      </div>
+      <div className="text-muted-foreground/40 flex justify-center gap-4 pt-4 font-mono text-xs tracking-wider uppercase">
+        <span>Realtime</span>
         <span>•</span>
-        <span>React Virtuoso</span>
+        <span>Secure</span>
         <span>•</span>
-        <span>Firestore Realtime</span>
+        <span>Fast</span>
       </div>
     </motion.div>
   </div>
@@ -66,7 +69,7 @@ export default function ChatLabPage() {
       {/* Sidebar - Hidden on mobile if chat is open */}
       <div
         className={cn(
-          'h-full w-full flex-shrink-0 transition-all duration-300 md:w-auto',
+          'h-full w-full shrink-0 transition-all duration-300 md:w-auto',
           selectedChatId ? 'hidden md:block' : 'block',
         )}
       >

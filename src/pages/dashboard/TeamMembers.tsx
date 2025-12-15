@@ -179,12 +179,14 @@ export default function TeamMembers() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="animate-fade-in-up space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Equipe</h2>
-          <p className="text-muted-foreground">
+          <h2 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-4xl font-bold tracking-tight text-transparent">
+            Equipe
+          </h2>
+          <p className="text-muted-foreground mt-2 text-lg">
             Gerencie os membros de {currentOrganization?.name}
           </p>
         </div>
@@ -210,7 +212,7 @@ export default function TeamMembers() {
       </div>
 
       {/* Members List */}
-      <Card>
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
         <CardHeader>
           <CardTitle>Membros Ativos</CardTitle>
           <CardDescription>{members.length} membro(s) na organização</CardDescription>
@@ -220,7 +222,7 @@ export default function TeamMembers() {
             {members.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between rounded-lg border p-4"
+                className="group border-border/40 hover:bg-muted/30 hover:border-primary/20 flex items-center justify-between rounded-lg border p-4 transition-all"
               >
                 <div className="flex items-center gap-4">
                   {/* Avatar */}
@@ -228,10 +230,10 @@ export default function TeamMembers() {
                     <img
                       src={member.user.photoURL}
                       alt={member.user.displayName || 'Avatar'}
-                      className="h-10 w-10 rounded-full object-cover"
+                      className="group-hover:ring-primary/20 h-10 w-10 rounded-full object-cover ring-2 ring-transparent transition-all"
                     />
                   ) : (
-                    <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">
+                    <div className="bg-primary/10 text-primary group-hover:ring-primary/20 flex h-10 w-10 items-center justify-center rounded-full ring-2 ring-transparent transition-all">
                       <User className="h-5 w-5" />
                     </div>
                   )}
@@ -240,7 +242,7 @@ export default function TeamMembers() {
                     <p className="font-medium">
                       {member.userId === user?.uid ? 'Você' : member.user?.displayName || 'Membro'}
                     </p>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground group-hover:text-primary/80 text-sm transition-colors">
                       {member.user?.email || member.userId}
                     </p>
                   </div>
@@ -251,7 +253,7 @@ export default function TeamMembers() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 opacity-0 transition-all group-hover:opacity-100 active:scale-95"
                       onClick={() =>
                         handleRemoveMember(member.id, member.user?.displayName || 'Membro')
                       }

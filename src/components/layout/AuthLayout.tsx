@@ -16,7 +16,12 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden">
-      {/* Concrete Texture Background */}
+      {/* Ambient Glow Background */}
+      <div className="pointer-events-none fixed inset-0 -z-30">
+        <div className="bg-primary/5 absolute top-0 left-1/4 h-96 w-96 rounded-full blur-3xl" />
+        <div className="bg-chart-2/5 absolute right-1/4 bottom-0 h-96 w-96 rounded-full blur-3xl" />
+      </div>
+
       {/* Static Grid Overlay */}
       <div
         className="pointer-events-none fixed inset-0 -z-20 h-full w-full bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-size-[14px_24px] opacity-10"
@@ -42,9 +47,12 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
       <div className="relative z-10 w-full max-w-[400px] px-4">
         <div className="mb-8 text-center">
           <div className="mb-4 flex justify-center">
-            {/* Logo */}
-            <div className="bg-primary text-primary-foreground flex h-12 w-12 items-center justify-center rounded-xl">
-              <LogoSvg className="h-7 w-7 fill-current" />
+            {/* Logo with glow effect */}
+            <div className="relative">
+              <div className="bg-primary/30 absolute inset-0 rounded-xl blur-xl" />
+              <div className="bg-primary text-primary-foreground relative flex h-12 w-12 items-center justify-center rounded-xl shadow-lg">
+                <LogoSvg className="h-7 w-7 fill-current" />
+              </div>
             </div>
           </div>
           <h1 className="text-foreground text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>

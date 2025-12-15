@@ -1,9 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useOrganizationContext } from '@/contexts/OrganizationContext'
+import { format, isToday, isYesterday } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import type { Timestamp } from 'firebase/firestore'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Bell, MessageSquare, Users } from 'lucide-react'
 
-import { chatService, type ChatUser, type FriendRequest } from '@/lib/chatService'
+import {
+  chatService,
+  type ChatSession,
+  type ChatUser,
+  type FriendRequest,
+  type Friendship,
+} from '@/lib/chatService'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -15,57 +24,71 @@ interface ChatSidebarProps {
   onSelectFriend: (friend: ChatUser) => void
 }
 
+// Tipo para friendship com amigo hidratado
+type FriendshipWithUser = Friendship & { friend: ChatUser | null }
+
+// Helper para formatar horário do chat (estilo WhatsApp)
+function formatChatTime(timestamp: Timestamp): string {
+  const date = timestamp.toDate()
+  if (isToday(date)) {
+    return format(date, 'HH:mm')
+  }
+  if (isYesterday(date)) {
+    return 'Ontem'
+  }
+  return format(date, 'dd/MM/yy', { locale: ptBR })
+}
+
 export function ChatSidebar({ onSelectFriend }: ChatSidebarProps) {
-  // const [activeTab, setActiveTab] = useState('chats') // Future use
   const [requests, setRequests] = useState<FriendRequest[]>([])
-  const [friends, setFriends] = useState<any[]>([]) // TODO: Type this properly with Friendship + FriendUser
+  const [friends, setFriends] = useState<FriendshipWithUser[]>([])
+  const [chats, setChats] = useState<ChatSession[]>([])
   const { user: currentUser } = useOrganizationContext()
 
+  // Subscription para solicitações de amizade e lista de amigos
   useEffect(() => {
-    if (!currentUser?.email) return
+    if (!currentUser?.email || !currentUser?.uid) return
 
-    // Listen for incoming friend requests
-    const unsubscribe = chatService.subscribeToIncomingRequests(currentUser.email, (data) => {
-      setRequests(data)
-    })
+    // 1. Listen for incoming friend requests
+    const unsubscribeRequests = chatService.subscribeToIncomingRequests(
+      currentUser.email,
+      (data) => {
+        setRequests(data)
+      },
+    )
 
-    return () => unsubscribe()
-    // Listen for accepted friends
-    if (!currentUser) return
+    // 2. Listen for accepted friends
     const unsubscribeFriends = chatService.subscribeToFriends(
-      currentUser!.uid,
+      currentUser.uid,
       async (friendships) => {
         // Hydrate friends (fetch their profiles)
-        // Optimization: In a real app we would have a user cache or get user from a 'users' map
-        // For MVP we fetch one by one (ok for small lists)
-        const currentUid = currentUser!.uid
+        const currentUid = currentUser.uid
         const friendsWithData = await Promise.all(
           friendships.map(async (f) => {
             const friendId = f.users.find((uid) => uid !== currentUid)
             if (!friendId) return null
             try {
-              // We use the search method as a quick way to get user data by ID logic if we had it exposed
-              // Or better, expose a getUser(id) in service.
-              // Let's create a quick helper or just use what we have.
-              // Wait, searchUserByEmail is by email. We need by ID.
-              // I will add a method getUserById momentarily or simulate it.
-              // Actually, let's optimize: The friendship doesn't have the friend data directly.
-              // Let's assume for MVP we fetch it.
-              // Workaround: We will fetch the user document.
               const user = await chatService.getUserProfile(friendId)
               return { ...f, friend: user }
-            } catch (e) {
+            } catch {
               return null
             }
           }),
         )
-        setFriends(friendsWithData.filter(Boolean))
+        setFriends(friendsWithData.filter((f): f is FriendshipWithUser => f !== null))
       },
     )
 
+    // 3. Listen for active chats
+    const unsubscribeChats = chatService.subscribeToChats(currentUser.uid, (chatList) => {
+      setChats(chatList)
+    })
+
+    // Cleanup all subscriptions
     return () => {
-      unsubscribe()
+      unsubscribeRequests()
       unsubscribeFriends()
+      unsubscribeChats()
     }
   }, [currentUser])
 
@@ -135,11 +158,64 @@ export function ChatSidebar({ onSelectFriend }: ChatSidebarProps) {
           className="mt-0 flex-1 overflow-hidden"
         >
           <ScrollArea className="h-full px-2 py-2">
-            <div className="text-muted-foreground py-10 text-center text-sm">
-              Você ainda não tem conversas iniciadas.
-              <br />
-              Vá em <strong>Contatos</strong> para iniciar um papo!
-            </div>
+            {chats.length === 0 ? (
+              <div className="text-muted-foreground py-10 text-center text-sm">
+                <MessageSquare className="mx-auto mb-2 h-8 w-8 opacity-50" />
+                <p>Você ainda não tem conversas iniciadas.</p>
+                <p className="mt-1 text-xs">
+                  Vá em <strong>Contatos</strong> para iniciar um papo!
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {chats.map((chat) => {
+                  // Encontrar o outro participante
+                  const otherUserId = chat.participants.find((id) => id !== currentUser?.uid)
+                  const otherUserData = chat.otherUser
+
+                  return (
+                    <button
+                      key={chat.id}
+                      onClick={async () => {
+                        // Se já temos os dados do outro usuário, usar diretamente
+                        if (otherUserData) {
+                          onSelectFriend(otherUserData)
+                        } else if (otherUserId) {
+                          // Caso contrário, buscar o perfil
+                          const profile = await chatService.getUserProfile(otherUserId)
+                          if (profile) {
+                            onSelectFriend(profile)
+                          }
+                        }
+                      }}
+                      className="hover:bg-accent flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors"
+                    >
+                      <Avatar>
+                        <AvatarImage src={otherUserData?.photoURL || undefined} />
+                        <AvatarFallback>
+                          {otherUserData?.displayName?.slice(0, 2) || '?'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 overflow-hidden">
+                        <div className="flex items-center justify-between">
+                          <h4 className="truncate font-medium">
+                            {otherUserData?.displayName || 'Usuário'}
+                          </h4>
+                          {chat.lastMessage?.createdAt && (
+                            <span className="text-muted-foreground text-xs">
+                              {formatChatTime(chat.lastMessage.createdAt)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-muted-foreground truncate text-xs">
+                          {chat.lastMessage?.text || 'Nenhuma mensagem ainda'}
+                        </p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </ScrollArea>
         </TabsContent>
 
@@ -220,7 +296,7 @@ export function ChatSidebar({ onSelectFriend }: ChatSidebarProps) {
                     className="hover:bg-accent flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors"
                   >
                     <Avatar>
-                      <AvatarImage src={friendship.friend?.photoURL} />
+                      <AvatarImage src={friendship.friend?.photoURL || undefined} />
                       <AvatarFallback>{friendship.friend?.displayName?.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 overflow-hidden">

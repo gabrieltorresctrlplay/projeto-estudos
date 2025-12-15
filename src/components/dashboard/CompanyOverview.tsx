@@ -96,11 +96,12 @@ export function CompanyOverview({ company }: CompanyOverviewProps) {
   return (
     <div className="space-y-6">
       {/* Company Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-lg">
-              <Building2 className="text-primary h-6 w-6" />
+      <Card className="overflow-hidden">
+        <div className="from-primary/5 to-chart-2/5 absolute inset-0 bg-linear-to-br" />
+        <CardHeader className="relative">
+          <div className="flex items-center gap-4">
+            <div className="from-primary/30 to-success/30 shadow-primary/20 flex h-14 w-14 items-center justify-center rounded-xl bg-linear-to-br shadow-lg">
+              <Building2 className="text-primary h-7 w-7" />
             </div>
             <div>
               <CardTitle className="text-2xl">{company.name}</CardTitle>
@@ -117,10 +118,15 @@ export function CompanyOverview({ company }: CompanyOverviewProps) {
         {statItems.map((stat, i) => {
           const Icon = stat.icon
           return (
-            <Card key={i}>
+            <Card
+              key={i}
+              className="group border-border/50 bg-card/80 hover:bg-card hover:border-primary/20 transition-all hover:-translate-y-1 hover:shadow-lg"
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <Icon className="text-muted-foreground h-4 w-4" />
+                <CardTitle className="text-muted-foreground text-sm font-medium">
+                  {stat.title}
+                </CardTitle>
+                <Icon className="text-muted-foreground group-hover:text-primary h-4 w-4 transition-colors" />
               </CardHeader>
               <CardContent>
                 {loading ? (
@@ -128,7 +134,9 @@ export function CompanyOverview({ company }: CompanyOverviewProps) {
                 ) : (
                   <div className="text-2xl font-bold">{stat.value}</div>
                 )}
-                <p className="text-muted-foreground text-xs">{stat.change}</p>
+                <p className="text-muted-foreground group-hover:text-primary/80 mt-1 text-xs transition-colors">
+                  {stat.change}
+                </p>
               </CardContent>
             </Card>
           )
@@ -136,7 +144,7 @@ export function CompanyOverview({ company }: CompanyOverviewProps) {
       </div>
 
       {/* Recent Activity Card */}
-      <Card>
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
         <CardHeader>
           <CardTitle>Atividade Recente</CardTitle>
           <CardDescription>Últimas movimentações da sua empresa</CardDescription>
@@ -147,7 +155,7 @@ export function CompanyOverview({ company }: CompanyOverviewProps) {
               Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between border-b pb-3 last:border-0"
+                  className="border-border/40 flex items-center justify-between border-b pb-3 last:border-0"
                 >
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-32" />
@@ -164,16 +172,18 @@ export function CompanyOverview({ company }: CompanyOverviewProps) {
               activities.map((activity) => (
                 <div
                   key={activity.id}
-                  className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
+                  className="group border-border/40 -mx-2 flex items-center justify-between rounded-lg border-b p-2 pb-3 transition-colors last:border-0 last:pb-0 hover:bg-white/5"
                 >
                   <div>
-                    <p className="text-sm font-medium">{activity.label}</p>
+                    <p className="group-hover:text-primary text-sm font-medium transition-colors">
+                      {activity.label}
+                    </p>
                     <p className="text-muted-foreground text-xs">
                       {formatRelativeTime(activity.timestamp)}
                     </p>
                   </div>
                   {activity.amount && (
-                    <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                    <p className="text-success text-sm font-semibold">
                       {formatCurrency(activity.amount)}
                     </p>
                   )}

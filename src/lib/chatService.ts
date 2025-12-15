@@ -213,10 +213,10 @@ export const chatService = {
       q,
       (snapshot) => {
         const friendships: Friendship[] = []
-        console.log(`[DEBUG] Friends Snapshot size: ${snapshot.size}`)
+
         snapshot.forEach((doc) => {
           const data = doc.data() as Friendship
-          console.log('[DEBUG] Friend Doc:', data)
+
           // Client-side filtering
           if (data.status === 'active') {
             // Avoid ID collision in TS
@@ -225,7 +225,7 @@ export const chatService = {
             friendships.push({ id: doc.id, ...rest } as Friendship)
           }
         })
-        console.log(`[DEBUG] Final active friendships: ${friendships.length}`)
+
         callback(friendships)
       },
       (error) => {
