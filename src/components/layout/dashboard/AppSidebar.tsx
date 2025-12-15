@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   List,
   LogOut,
+  MessageSquare,
   Moon,
   Package,
   ShoppingCart,
@@ -88,6 +89,7 @@ export function AppSidebar() {
       path: `${dashboardUrl}/estatisticas`,
       tooltip: 'Estatísticas',
     },
+    { icon: MessageSquare, label: 'Chat Lab', path: '/dashboard/chat-lab', tooltip: 'Chat Lab' },
     { icon: UserIcon, label: 'Perfil', path: `${dashboardUrl}/perfil`, tooltip: 'Perfil' },
   ]
 

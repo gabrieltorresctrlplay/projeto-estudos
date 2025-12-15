@@ -63,7 +63,7 @@ export function useCompanySync() {
   ])
 
   return {
-    isSyncing: isSyncing || orgsLoading || !currentOrganization,
+    isSyncing: isSyncing || orgsLoading,
     companyIndex: companyIndex ? parseInt(companyIndex, 10) : 0,
   }
 }

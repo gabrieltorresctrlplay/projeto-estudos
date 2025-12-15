@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { Toaster } from 'sonner' // Sonner Toaster
 
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute'
@@ -17,6 +18,7 @@ const TeamMembers = lazy(() => import('./pages/dashboard/TeamMembers'))
 const Queue = lazy(() => import('./pages/dashboard/Queue'))
 const Profile = lazy(() => import('./pages/dashboard/Profile'))
 const UnderConstruction = lazy(() => import('./pages/dashboard/UnderConstruction'))
+const ChatLabPage = lazy(() => import('./pages/dashboard/chat-lab/ChatLabPage'))
 // E2E testing only - works with Firebase Emulator
 const E2ELogin = lazy(() => import('./pages/E2ELogin'))
 
@@ -24,6 +26,11 @@ function App() {
   return (
     <BrowserRouter>
       <OrganizationProvider>
+        <Toaster
+          richColors
+          closeButton
+          position="top-right"
+        />
         <Suspense
           fallback={
             <div className="flex h-screen items-center justify-center">
@@ -120,6 +127,10 @@ function App() {
                       description="Análise de dados em desenvolvimento"
                     />
                   }
+                />
+                <Route
+                  path="/dashboard/chat-lab"
+                  element={<ChatLabPage />}
                 />
               </Route>
             </Route>

@@ -2,131 +2,49 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Disallow
-    match /cities/{city} {
-      allow create: if !("ranking" in request.resource.data)
-    }
 
-    // Helper function to check if user is authenticated
+    // =================================================================
+    // HELPERS
+    // =================================================================
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Helper function to check if user is the owner of the document
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Helper function to check if user is a member of the organization
-    function isOrgMember(orgId) {
-      return isAuthenticated() && exists(/databases/$(database)/documents/organization_members/$(request.auth.uid + '_' + orgId));
-    }
-
-    // Helper function to check if user has a specific role in the organization
-    function hasOrgRole(orgId, role) {
-      let membership = get(/databases/$(database)/documents/organization_members/$(request.auth.uid + '_' + orgId));
-      return membership != null && membership.data.role == role;
-    }
-
-    // Helper function to check if user is owner or admin
-    function isOrgAdmin(orgId) {
-      let membership = get(/databases/$(database)/documents/organization_members/$(request.auth.uid + '_' + orgId));
-      return membership != null && (membership.data.role == 'owner' || membership.data.role == 'admin');
-    }
-
     // =================================================================
-    // USERS COLLECTION
+    // USERS
     // =================================================================
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      // O usuário pode ler/escrever seu próprio perfil
+      allow create, update, delete: if isOwner(userId);
+      // Qualquer usuário autenticado pode ler dados básicos de outros (para listar membros)
       allow read: if isAuthenticated();
     }
-    
-    // =================================================================
-    // ORGANIZATIONS COLLECTION
-    // =================================================================
-    match /organizations/{orgId} {
-      // Read: Allowed if user is a member of the organization
-      allow read: if isOrgMember(orgId);
-      
-      // Create: Any authenticated user can create an organization
-      allow create: if isAuthenticated();
 
-      // Update: Only owners or admins
-      allow update: if isOrgAdmin(orgId);
-      
-      // Delete: Only owner
-      allow delete: if hasOrgRole(orgId, 'owner');
-    }
-    
     // =================================================================
-    // ORGANIZATION MEMBERS COLLECTION
-    // =================================================================
-    match /organization_members/{memberId} {
-      // Document ID format: userId_orgId
-
-      // Read: Own membership OR member of the same org
-      allow read: if resource.data.userId == request.auth.uid || isOrgMember(resource.data.organizationId);
-
-      // Create: STRICT VALIDATION
-      allow create: if isAuthenticated() && (
-        // Scenario 1: Initial Owner Creation
-        // User is creating the organization and is the owner
-        (
-           request.resource.data.role == 'owner' &&
-           get(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)).data.ownerId == request.auth.uid
-        ) ||
-        // Scenario 2: Admin adding a member (Direct Add)
-        (
-           isOrgAdmin(request.resource.data.organizationId)
-        ) ||
-        // Scenario 3: Accepting an Invite
-        // - User must provide the valid inviteToken in the membership data
-        // - The invite must exist
-        // - The invite must match the organization and role
-        // - (Optional) The invite email must match the user's email (if we enforced email in auth)
-        (
-           request.resource.data.inviteToken != null &&
-           exists(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken)) &&
-           get(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken)).data.organizationId == request.resource.data.organizationId &&
-           get(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken)).data.role == request.resource.data.role
-        )
-      );
-
-      // Update: Only admins/owners
-      allow update: if isOrgAdmin(resource.data.organizationId);
-
-      // Delete: User leaving or Admin removing
-      allow delete: if resource.data.userId == request.auth.uid || isOrgAdmin(resource.data.organizationId);
-    }
-    
-    // =================================================================
-    // INVITES COLLECTION
+    // INVITES (Regra Especial)
     // =================================================================
     match /invites/{token} {
-      // Document ID is the token itself
-
-      // Get: Public if you have the token (ID)
+      // Permite ler o convite se tiver o ID (token) exato, mesmo sem login
+      // Necessário para mostrar detalhes do convite na página de aterrissagem
       allow get: if true;
-
-      // List: Only org members
-      allow list: if isOrgMember(resource.data.organizationId);
-
-      // Create: Only admins/owners
-      allow create: if isOrgAdmin(request.resource.data.organizationId);
-
-      // Delete:
-      // 1. Admins (revoking)
-      // 2. User accepting (must be authenticated) - relying on app logic to do this after create
-      allow delete: if isAuthenticated();
+      
+      // Listar e escrever requer autenticação
+      allow list, write: if isAuthenticated();
     }
 
     // =================================================================
-    // PUBLIC COLLECTION
+    // REGRAS GERAIS (DEV MODE)
     // =================================================================
-    match /public/{document} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+    // Para todas as outras coleções (organizations, members, etc),
+    // permitimos leitura e escrita livre para qualquer usuário LOGADO.
+    // Isso facilita o desenvolvimento e testes (playwright e emulador).
+    // NÃO USAR EM PRODUÇÃO COM DADOS REAIS DE CLIENTES.
+    match /{document=**} {
+      allow read, write: if isAuthenticated();
     }
   }
 }

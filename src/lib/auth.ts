@@ -69,4 +69,3 @@ export const authService = {
     return auth.onAuthStateChanged(callback)
   },
 }
-

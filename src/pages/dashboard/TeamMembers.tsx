@@ -41,7 +41,10 @@ export default function TeamMembers() {
   // Load team members
   useEffect(() => {
     const loadTeamData = async () => {
-      if (!currentOrganization) return
+      if (!currentOrganization) {
+        setLoading(false)
+        return
+      }
 
       setLoading(true)
 

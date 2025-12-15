@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { authService } from '@/lib/auth'
@@ -35,7 +35,7 @@ export default function E2ELogin() {
       }
 
       setStatus('success')
-      
+
       // Redirect after successful login
       setTimeout(() => {
         navigate(redirect, { replace: true })
@@ -48,12 +48,12 @@ export default function E2ELogin() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-900 text-white">
       <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">E2E Test Login</h1>
+        <h1 className="mb-4 text-2xl font-bold">E2E Test Login</h1>
         {status === 'loading' && <p>Logging in...</p>}
-        {status === 'success' && <p className="text-green-400">✓ Login successful! Redirecting...</p>}
-        {status === 'error' && (
-          <p className="text-red-400">✗ Error: {error}</p>
+        {status === 'success' && (
+          <p className="text-green-400">✓ Login successful! Redirecting...</p>
         )}
+        {status === 'error' && <p className="text-red-400">✗ Error: {error}</p>}
       </div>
     </div>
   )

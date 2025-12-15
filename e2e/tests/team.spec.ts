@@ -1,233 +1,216 @@
+/**
+ * E2E Tests for Team Page
+ *
+ * Tests role-based access control for Owner, Admin, and Member roles.
+ * Validates visibility of invite generation and leave organization buttons.
+ */
+
 import { expect, test, type Page } from '@playwright/test'
 
+import { ROUTES, TIMEOUTS, UI_PATTERNS } from '../constants/test-constants'
+import { addMemberToOrganization, createOwnerWithOrganization } from '../utils/firebase-emulator'
 import {
-  addMemberToOrganization,
-  clearAuthEmulator,
-  clearFirestoreEmulator,
-  createOwnerWithOrganization,
-  signInTestUser,
-} from '../utils/firebase-emulator'
+  navigateToTeamPageAs,
+  resetEmulatorState,
+  type AuthenticatedUser,
+} from '../utils/test-helpers'
 
-// Run tests serially to avoid race conditions when clearing emulator data
+// =============================================================================
+// Test Configuration
+// =============================================================================
+
+// Run tests serially to avoid race conditions with shared emulator state
 test.describe.configure({ mode: 'serial' })
 
-/**
- * Faz login e configura a sessão no navegador
- */
-async function loginAndNavigate(
-  page: Page,
-  email: string,
-  password: string,
-  uid: string,
-  redirect: string = '/dashboard',
-) {
-  // Sign in via API to get token
-  const idToken = await signInTestUser(email, password)
+// =============================================================================
+// Test Data Setup Functions
+// =============================================================================
 
-  // Navigate to app
-  await page.goto('/')
+interface OwnerSetupResult {
+  user: AuthenticatedUser
+  organizationId: string
+}
 
-  // Set auth token in localStorage (Firebase Auth persists here)
-  await page.evaluate(
-    ({ email, uid, token }) => {
-      const authKey = `firebase:authUser:demo-api-key:[DEFAULT]`
-      const authData = {
-        uid,
-        email,
-        emailVerified: false,
-        displayName: 'Test User',
-        isAnonymous: false,
-        providerData: [],
-        stsTokenManager: {
-          refreshToken: token,
-          accessToken: token,
-          expirationTime: Date.now() + 3600000,
-        },
-        createdAt: Date.now().toString(),
-        lastLoginAt: Date.now().toString(),
-        apiKey: 'demo-api-key',
-        appName: '[DEFAULT]',
-      }
-      localStorage.setItem(authKey, JSON.stringify(authData))
-    },
-    { email, uid, token: idToken },
+interface AdminSetupResult {
+  owner: OwnerSetupResult
+  admin: { user: AuthenticatedUser }
+}
+
+interface MemberSetupResult {
+  owner: OwnerSetupResult
+  member: { user: AuthenticatedUser }
+}
+
+async function createOwnerTestData(): Promise<OwnerSetupResult> {
+  await resetEmulatorState()
+
+  const { user, organization } = await createOwnerWithOrganization(
+    'Test Owner',
+    'Test Organization',
   )
 
-  // Navigate to the target page and wait for load
-  await page.goto(redirect, { waitUntil: 'domcontentloaded' })
+  return {
+    user,
+    organizationId: organization.id,
+  }
 }
 
-/**
- * Aguarda a página carregar completamente (loading desaparecer)
- */
-async function waitForPageLoad(page: Page) {
-  // Aguardar o LoadingSpinner principal desaparecer
-  const spinner = page.locator('[role="status"][aria-label="Carregando conteúdo"]')
-  await expect(spinner).not.toBeVisible({ timeout: 20000 })
+async function createAdminTestData(): Promise<AdminSetupResult> {
+  await resetEmulatorState()
 
-  // Pequeno delay para garantir que o conteúdo renderizou
-  await page.waitForTimeout(500)
+  const { user, organization } = await createOwnerWithOrganization(
+    'Test Owner',
+    'Test Organization',
+  )
+
+  const admin = await addMemberToOrganization(organization.id, 'admin', 'Test Admin')
+
+  return {
+    owner: { user, organizationId: organization.id },
+    admin: { user: admin.user as AuthenticatedUser },
+  }
 }
 
-/**
- * Setup para cada teste - cria dados limpos e retorna credenciais
- */
-async function setupOwner() {
-  await clearAuthEmulator()
-  await clearFirestoreEmulator()
-  const owner = await createOwnerWithOrganization('Proprietário Teste', 'Empresa Teste')
-  return owner
+async function createMemberTestData(): Promise<MemberSetupResult> {
+  await resetEmulatorState()
+
+  const { user, organization } = await createOwnerWithOrganization(
+    'Test Owner',
+    'Test Organization',
+  )
+
+  const member = await addMemberToOrganization(organization.id, 'member', 'Test Member')
+
+  return {
+    owner: { user, organizationId: organization.id },
+    member: { user: member.user as AuthenticatedUser },
+  }
 }
 
-async function setupAdmin() {
-  await clearAuthEmulator()
-  await clearFirestoreEmulator()
-  const owner = await createOwnerWithOrganization('Proprietário', 'Empresa Teste')
-  const admin = await addMemberToOrganization(owner.organization.id, 'admin', 'Admin Teste')
-  return { owner, admin }
+// =============================================================================
+// Assertion Helpers
+// =============================================================================
+
+async function expectHeadingVisible(page: Page): Promise<void> {
+  await expect(page.getByRole('heading', { name: UI_PATTERNS.TEAM_HEADING })).toBeVisible({
+    timeout: TIMEOUTS.PAGE_LOAD_MS,
+  })
 }
 
-async function setupMember() {
-  await clearAuthEmulator()
-  await clearFirestoreEmulator()
-  const owner = await createOwnerWithOrganization('Proprietário', 'Empresa Teste')
-  const member = await addMemberToOrganization(owner.organization.id, 'member', 'Membro Teste')
-  return { owner, member }
+async function expectOwnerBadgeVisible(page: Page): Promise<void> {
+  await expect(page.getByText(UI_PATTERNS.OWNER_BADGE)).toBeVisible({
+    timeout: TIMEOUTS.PAGE_LOAD_MS,
+  })
 }
 
-// ============================================================================
-// TESTES DO OWNER
-// ============================================================================
+async function expectInviteButtonVisible(page: Page): Promise<void> {
+  await expect(page.getByRole('button', { name: UI_PATTERNS.INVITE_BUTTON })).toBeVisible({
+    timeout: TIMEOUTS.PAGE_LOAD_MS,
+  })
+}
 
-test.describe('Página de Equipe - Owner', () => {
-  test('owner vê página com título "Equipe" após login', async ({ page }) => {
-    const { user } = await setupOwner()
-    await loginAndNavigate(page, user.email, user.password, user.uid, '/dashboard/0/team')
+async function expectInviteButtonHidden(page: Page): Promise<void> {
+  await expect(page.getByRole('button', { name: UI_PATTERNS.INVITE_BUTTON })).not.toBeVisible({
+    timeout: TIMEOUTS.PAGE_LOAD_MS,
+  })
+}
 
-    if (page.url().includes('/team')) {
-      await waitForPageLoad(page)
-      await expect(page.getByRole('heading', { name: /equipe/i })).toBeVisible()
-    }
+async function expectLeaveButtonVisible(page: Page): Promise<void> {
+  await expect(page.getByRole('button', { name: UI_PATTERNS.LEAVE_BUTTON })).toBeVisible({
+    timeout: TIMEOUTS.PAGE_LOAD_MS,
+  })
+}
+
+async function expectLeaveButtonHidden(page: Page): Promise<void> {
+  await expect(page.getByRole('button', { name: UI_PATTERNS.LEAVE_BUTTON })).not.toBeVisible({
+    timeout: TIMEOUTS.PAGE_LOAD_MS,
+  })
+}
+
+// =============================================================================
+// Owner Tests
+// =============================================================================
+
+test.describe('Team Page - Owner Role', () => {
+  test('should display team heading after login', async ({ page }) => {
+    const { user } = await createOwnerTestData()
+    await navigateToTeamPageAs(page, user)
+
+    await expectHeadingVisible(page)
   })
 
-  test('owner vê badge de Proprietário', async ({ page }) => {
-    const { user } = await setupOwner()
-    await loginAndNavigate(page, user.email, user.password, user.uid, '/dashboard/0/team')
+  test('should display owner badge', async ({ page }) => {
+    const { user } = await createOwnerTestData()
+    await navigateToTeamPageAs(page, user)
 
-    if (page.url().includes('/team')) {
-      await waitForPageLoad(page)
-      await expect(page.getByText(/proprietário/i)).toBeVisible()
-    }
+    await expectOwnerBadgeVisible(page)
   })
 
-  test('owner vê botão Gerar Convite', async ({ page }) => {
-    const { user } = await setupOwner()
-    await loginAndNavigate(page, user.email, user.password, user.uid, '/dashboard/0/team')
+  test('should display invite generation button', async ({ page }) => {
+    const { user } = await createOwnerTestData()
+    await navigateToTeamPageAs(page, user)
 
-    if (page.url().includes('/team')) {
-      await waitForPageLoad(page)
-      await expect(page.getByRole('button', { name: /gerar convite/i })).toBeVisible()
-    }
+    await expectInviteButtonVisible(page)
   })
 
-  test('owner NÃO vê botão Sair da Empresa', async ({ page }) => {
-    const { user } = await setupOwner()
-    await loginAndNavigate(page, user.email, user.password, user.uid, '/dashboard/0/team')
+  test('should NOT display leave organization button', async ({ page }) => {
+    const { user } = await createOwnerTestData()
+    await navigateToTeamPageAs(page, user)
 
-    if (page.url().includes('/team')) {
-      await waitForPageLoad(page)
-      await expect(page.getByRole('button', { name: /sair da empresa/i })).not.toBeVisible()
-    }
+    await expectLeaveButtonHidden(page)
   })
 })
 
-// ============================================================================
-// TESTES DO ADMIN
-// ============================================================================
+// =============================================================================
+// Admin Tests
+// =============================================================================
 
-test.describe('Página de Equipe - Admin', () => {
-  test('admin vê botão Gerar Convite', async ({ page }) => {
-    const { admin } = await setupAdmin()
-    await loginAndNavigate(
-      page,
-      admin.user.email,
-      admin.user.password,
-      admin.user.uid,
-      '/dashboard/0/team',
-    )
+test.describe('Team Page - Admin Role', () => {
+  test('should display invite generation button', async ({ page }) => {
+    const { admin } = await createAdminTestData()
+    await navigateToTeamPageAs(page, admin.user)
 
-    if (page.url().includes('/team')) {
-      await waitForPageLoad(page)
-      await expect(page.getByRole('button', { name: /gerar convite/i })).toBeVisible()
-    }
+    await expectInviteButtonVisible(page)
   })
 
-  test('admin vê botão Sair da Empresa', async ({ page }) => {
-    const { admin } = await setupAdmin()
-    await loginAndNavigate(
-      page,
-      admin.user.email,
-      admin.user.password,
-      admin.user.uid,
-      '/dashboard/0/team',
-    )
+  test('should display leave organization button', async ({ page }) => {
+    const { admin } = await createAdminTestData()
+    await navigateToTeamPageAs(page, admin.user)
 
-    if (page.url().includes('/team')) {
-      await waitForPageLoad(page)
-      await expect(page.getByRole('button', { name: /sair da empresa/i })).toBeVisible()
-    }
+    await expectLeaveButtonVisible(page)
   })
 })
 
-// ============================================================================
-// TESTES DO MEMBRO
-// ============================================================================
+// =============================================================================
+// Member Tests
+// =============================================================================
 
-test.describe('Página de Equipe - Membro', () => {
-  test('membro NÃO vê botão Gerar Convite', async ({ page }) => {
-    const { member } = await setupMember()
-    await loginAndNavigate(
-      page,
-      member.user.email,
-      member.user.password,
-      member.user.uid,
-      '/dashboard/0/team',
-    )
+test.describe('Team Page - Member Role', () => {
+  test('should NOT display invite generation button', async ({ page }) => {
+    const { member } = await createMemberTestData()
+    await navigateToTeamPageAs(page, member.user)
 
-    if (page.url().includes('/team')) {
-      await waitForPageLoad(page)
-      await expect(page.getByRole('button', { name: /gerar convite/i })).not.toBeVisible()
-    }
+    await expectInviteButtonHidden(page)
   })
 
-  test('membro vê botão Sair da Empresa', async ({ page }) => {
-    const { member } = await setupMember()
-    await loginAndNavigate(
-      page,
-      member.user.email,
-      member.user.password,
-      member.user.uid,
-      '/dashboard/0/team',
-    )
+  test('should display leave organization button', async ({ page }) => {
+    const { member } = await createMemberTestData()
+    await navigateToTeamPageAs(page, member.user)
 
-    if (page.url().includes('/team')) {
-      await waitForPageLoad(page)
-      await expect(page.getByRole('button', { name: /sair da empresa/i })).toBeVisible()
-    }
+    await expectLeaveButtonVisible(page)
   })
 })
 
-// ============================================================================
-// TESTES DE PROTEÇÃO
-// ============================================================================
+// =============================================================================
+// Route Protection Tests
+// =============================================================================
 
-test.describe('Página de Equipe - Proteção', () => {
-  test('usuário não autenticado é redirecionado para login', async ({ page }) => {
-    await clearAuthEmulator()
-    await clearFirestoreEmulator()
+test.describe('Team Page - Route Protection', () => {
+  test('should redirect unauthenticated user to login', async ({ page }) => {
+    await resetEmulatorState()
 
-    await page.goto('/dashboard/0/team')
-    await page.waitForURL(/\/(auth|login)/)
+    await page.goto(ROUTES.TEAM_PAGE)
+    await page.waitForURL(ROUTES.AUTH_PATTERN)
   })
 })
 

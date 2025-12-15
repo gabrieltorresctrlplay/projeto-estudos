@@ -1,37 +1,40 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>E2E Test Login</title>
-  <script type="module">
-    import { authService } from '/src/lib/auth.ts';
-    
-    window.e2eLogin = async (email, password) => {
-      const result = await authService.signInWithEmail(email, password);
-      if (result.error) {
-        throw result.error;
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>E2E Test Login</title>
+    <script type="module">
+      import { authService } from '/src/lib/auth.ts'
+
+      window.e2eLogin = async (email, password) => {
+        const result = await authService.signInWithEmail(email, password)
+        if (result.error) {
+          throw result.error
+        }
+        return { success: true, uid: result.user?.uid }
       }
-      return { success: true, uid: result.user?.uid };
-    };
-    
-    window.e2eLogout = async () => {
-      await authService.signOut();
-      return { success: true };
-    };
-    
-    window.e2eGetUser = () => {
-      return authService.getCurrentUser();
-    };
-    
-    // Sinaliza que está pronto
-    window.__E2E_READY__ = true;
-    document.getElementById('status').textContent = 'Ready';
-  </script>
-</head>
-<body>
-  <h1>E2E Test Login Page</h1>
-  <p>Status: <span id="status">Loading...</span></p>
-  <p>This page is only for E2E testing with Firebase Emulator.</p>
-</body>
+
+      window.e2eLogout = async () => {
+        await authService.signOut()
+        return { success: true }
+      }
+
+      window.e2eGetUser = () => {
+        return authService.getCurrentUser()
+      }
+
+      // Sinaliza que está pronto
+      window.__E2E_READY__ = true
+      document.getElementById('status').textContent = 'Ready'
+    </script>
+  </head>
+  <body>
+    <h1>E2E Test Login Page</h1>
+    <p>Status: <span id="status">Loading...</span></p>
+    <p>This page is only for E2E testing with Firebase Emulator.</p>
+  </body>
 </html>
