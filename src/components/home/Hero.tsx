@@ -45,11 +45,11 @@ export const Hero = memo(function Hero() {
         <Button
           size="lg"
           variant="premium"
-          className="shadow-primary/25 hover:shadow-primary/30 h-11 rounded-full px-8 text-sm shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:h-12 sm:px-10 sm:text-base"
+          className="shadow-primary/25 h-11 rounded-full px-8 text-sm shadow-lg sm:h-12 sm:px-10 sm:text-base"
           aria-label="Começar teste grátis de 14 dias"
           asChild
         >
-          <Link to="/register">
+          <Link to="/login">
             Começar Teste Grátis <ArrowRight className="ml-2 size-4 sm:size-5" />
           </Link>
         </Button>

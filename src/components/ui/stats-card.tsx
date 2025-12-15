@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils'
 
 const statsCardVariants = cva(
   [
-    // Base styles: Supabase Glass Panel
+    // Base styles: NerfasInc Glass Panel
     'relative overflow-hidden rounded-xl border',
     'glass-panel', // New utility
     'text-text-primary',

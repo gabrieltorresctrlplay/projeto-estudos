@@ -26,22 +26,8 @@ export interface ThemeProviderState {
   setTheme: (theme: Theme) => void
 }
 
-// Company Management (LEGACY - Will be deprecated)
-export interface Company {
-  id: string
-  name: string
-  ownerId: string
-  createdAt: Date
-  updatedAt: Date
-}
-
-export interface UserPreferences {
-  theme: Theme
-  selectedCompanyId: string | null
-}
-
 // ============================================
-// Multi-Tenant Organization System (NEW)
+// Multi-Tenant Organization System
 // ============================================
 
 export interface Organization {

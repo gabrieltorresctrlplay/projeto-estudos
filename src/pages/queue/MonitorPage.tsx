@@ -62,8 +62,8 @@ export default function MonitorPage() {
 
   if (isLoading) {
     return (
-      <div className="bg-queue-bg flex h-screen items-center justify-center">
-        <Loader2 className="h-16 w-16 animate-spin text-white" />
+      <div className="bg-background flex h-screen items-center justify-center">
+        <Loader2 className="text-primary h-16 w-16 animate-spin" />
       </div>
     )
   }
@@ -72,11 +72,11 @@ export default function MonitorPage() {
   const previousTickets = calledTickets.slice(1)
 
   return (
-    <div className="from-queue-bg via-info/10 to-queue-bg relative min-h-screen overflow-hidden bg-linear-to-br p-8 text-white">
+    <div className="bg-background text-foreground relative min-h-screen overflow-hidden p-8">
       {/* Ambient Background Effects */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="bg-primary/5 absolute -top-1/3 left-1/2 h-[600px] w-[600px] -translate-x-1/2 animate-pulse rounded-full blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_var(--queue-bg)_70%)]" />
+        <div className="to-background absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_var(--color-background)_70%)] from-transparent" />
       </div>
 
       {/* Botão de Áudio */}
@@ -84,7 +84,7 @@ export default function MonitorPage() {
         variant="ghost"
         size="icon"
         aria-label={audioEnabled ? 'Desativar áudio' : 'Ativar áudio'}
-        className="absolute top-6 right-6 z-10 rounded-full bg-white/5 text-white/60 backdrop-blur-sm transition-all hover:bg-white/10 hover:text-white"
+        className="bg-secondary text-muted-foreground hover:bg-accent hover:text-foreground absolute top-6 right-6 z-10 rounded-full backdrop-blur-sm transition-all"
         onClick={() => setAudioEnabled(!audioEnabled)}
       >
         {audioEnabled ? <Volume2 className="h-6 w-6" /> : <VolumeX className="h-6 w-6" />}
@@ -92,10 +92,10 @@ export default function MonitorPage() {
 
       {/* Header */}
       <div className="relative mb-16 text-center">
-        <p className="text-sm font-medium tracking-[0.3em] text-white/40 uppercase">
+        <p className="text-muted-foreground text-sm font-medium tracking-[0.3em] uppercase">
           Painel de Chamada
         </p>
-        <h1 className="mt-2 bg-linear-to-r from-white to-white/60 bg-clip-text text-4xl font-light tracking-wider text-transparent">
+        <h1 className="text-foreground mt-2 text-4xl font-light tracking-wider">
           {queue?.name || 'Aguardando...'}
         </h1>
       </div>
@@ -139,13 +139,13 @@ export default function MonitorPage() {
               {currentTicket.fullCode}
             </motion.div>
 
-            <div className="mt-10 text-4xl font-light text-white/70">
-              <span className="mr-4 text-white/40">→</span>
-              <span className="font-medium text-white">{currentTicket.counterName}</span>
+            <div className="text-muted-foreground mt-10 text-4xl font-light">
+              <span className="mr-4 opacity-50">→</span>
+              <span className="text-foreground font-medium">{currentTicket.counterName}</span>
             </div>
 
             {currentTicket.isPriority && (
-              <div className="bg-warning text-warning-foreground shadow-warning/30 mt-6 inline-block rounded-full px-6 py-2 text-lg font-medium shadow-lg">
+              <div className="bg-chart-4 text-primary-foreground shadow-chart-4/30 mt-6 inline-block rounded-full px-6 py-2 text-lg font-medium shadow-lg">
                 Atendimento Preferencial
               </div>
             )}
@@ -156,7 +156,7 @@ export default function MonitorPage() {
             animate={{ opacity: 1 }}
             className="mb-16 py-32 text-center"
           >
-            <div className="text-6xl font-light text-white/40">Aguardando chamadas...</div>
+            <div className="text-muted-foreground text-6xl font-light">Aguardando chamadas...</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -164,7 +164,7 @@ export default function MonitorPage() {
       {/* Histórico */}
       {previousTickets.length > 0 && (
         <div className="mx-auto max-w-4xl">
-          <h2 className="mb-6 text-center text-lg font-light tracking-widest text-white/40 uppercase">
+          <h2 className="text-muted-foreground mb-6 text-center text-lg font-light tracking-widest uppercase">
             Chamadas Anteriores
           </h2>
           <div className="grid grid-cols-4 gap-4">
@@ -175,8 +175,8 @@ export default function MonitorPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className={cn(
-                  'rounded-2xl border border-white/10 bg-white/5 p-6 text-center backdrop-blur-sm',
-                  ticket.status === 'serving' && 'border-success/30 bg-success/10',
+                  'border-border rounded-2xl border p-6 text-center backdrop-blur-sm',
+                  ticket.status === 'serving' && 'border-primary/30 bg-primary/10',
                 )}
               >
                 <div
@@ -185,7 +185,7 @@ export default function MonitorPage() {
                 >
                   {ticket.fullCode}
                 </div>
-                <div className="mt-2 text-sm text-white/60">{ticket.counterName}</div>
+                <div className="text-muted-foreground mt-2 text-sm">{ticket.counterName}</div>
               </motion.div>
             ))}
           </div>
@@ -193,7 +193,7 @@ export default function MonitorPage() {
       )}
 
       {/* Clock */}
-      <div className="absolute bottom-8 left-8 text-2xl font-light text-white/40">
+      <div className="text-muted-foreground absolute bottom-8 left-8 text-2xl font-light">
         {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
       </div>
     </div>

@@ -15,6 +15,7 @@ import {
 } from '@/lib/chatService'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { FeatureIcon } from '@/components/ui/feature-icon'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -115,14 +116,16 @@ export function ChatSidebar({ onSelectFriend }: ChatSidebarProps) {
   }
 
   return (
-    <aside className="border-border bg-card flex h-full w-full flex-col border-r md:w-[350px] lg:w-[400px]">
+    <aside className="border-border flex h-full w-full flex-col border-r md:w-[350px] lg:w-[400px]">
       {/* Header */}
       <div className="border-border flex items-center justify-between border-b p-4">
         <div className="flex items-center gap-2">
-          <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
-            <MessageSquare className="text-primary h-4 w-4" />
-          </div>
-          <h1 className="text-lg font-semibold">Chat</h1>
+          <FeatureIcon
+            icon={MessageSquare}
+            className="h-8 w-8"
+            iconClassName="h-4 w-4"
+          />
+          <h1 className="text-foreground font-semibold">Chat</h1>
         </div>
         <div className="flex items-center gap-1">
           <FriendRequestDialog />
@@ -231,7 +234,7 @@ export function ChatSidebar({ onSelectFriend }: ChatSidebarProps) {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="bg-muted/30 border-b"
+                className="bg-muted border-b"
               >
                 <div className="space-y-2 p-2">
                   <div className="text-muted-foreground flex items-center gap-2 px-2 text-xs font-semibold uppercase">

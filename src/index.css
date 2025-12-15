@@ -68,9 +68,9 @@
   --secondary-foreground: oklch(0.9851 0 0);
   --muted: oklch(0.2393 0 0);
   --muted-foreground: oklch(0.7122 0 0);
-  --accent: oklch(0.3132 0 0);
+  --accent: oklch(0.3329 0 0);
   --accent-foreground: oklch(0.9851 0 0);
-  --destructive: oklch(0.3123 0.0852 29.7877);
+  --destructive: oklch(0.5523 0.1927 32.7272);
   --destructive-foreground: oklch(0.9368 0.0045 34.3092);
   --border: oklch(0.2809 0 0);
   --input: oklch(0.2603 0 0);
@@ -170,4 +170,5 @@
 
 body {
   letter-spacing: var(--tracking-normal);
+  background-color: var(--background);
 }

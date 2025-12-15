@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useOrganizationContext } from '@/contexts/OrganizationContext'
 import { AnimatePresence, motion } from 'framer-motion'
-import { AlertCircle, ArrowLeft, Loader2, Ticket } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Loader2, Printer, Ticket } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -9,6 +9,7 @@ import type { Queue, ServiceCategory, Ticket as TicketType } from '@/types/queue
 import { queueService } from '@/lib/queueService'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { FeatureIcon } from '@/components/ui/feature-icon'
 
 export default function TotemPage() {
   const { queueId } = useParams<{ queueId: string }>()
@@ -73,16 +74,16 @@ export default function TotemPage() {
 
   if (isLoading) {
     return (
-      <div className="from-queue-bg to-queue-card flex h-screen items-center justify-center bg-linear-to-br">
-        <Loader2 className="h-12 w-12 animate-spin text-white" />
+      <div className="bg-background flex h-screen items-center justify-center">
+        <Loader2 className="text-primary h-12 w-12 animate-spin" />
       </div>
     )
   }
 
   if (!queue) {
     return (
-      <div className="from-queue-bg to-queue-card flex h-screen flex-col items-center justify-center gap-4 bg-linear-to-br text-white">
-        <AlertCircle className="h-16 w-16 text-red-400" />
+      <div className="bg-background text-foreground flex h-screen flex-col items-center justify-center gap-4">
+        <AlertCircle className="text-destructive h-16 w-16" />
         <h1 className="text-2xl font-bold">Fila não encontrada</h1>
         <Button
           variant="outline"
@@ -96,21 +97,19 @@ export default function TotemPage() {
   }
 
   return (
-    <div className="from-queue-bg via-queue-card/80 to-queue-bg relative min-h-screen overflow-hidden bg-linear-to-br p-8">
+    <div className="bg-background relative min-h-screen overflow-hidden p-8">
       {/* Ambient Background Glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="bg-primary/10 absolute -top-1/4 left-1/4 h-96 w-96 rounded-full blur-3xl" />
-        <div className="bg-info/10 absolute right-1/4 -bottom-1/4 h-96 w-96 rounded-full blur-3xl" />
+        <div className="bg-chart-2/10 absolute right-1/4 -bottom-1/4 h-96 w-96 rounded-full blur-3xl" />
       </div>
 
       {/* Header */}
       <div className="relative mb-12 text-center">
-        <h1 className="bg-linear-to-r from-white to-white/70 bg-clip-text text-5xl font-bold tracking-tight text-transparent">
-          {queue.name}
-        </h1>
-        <p className="mt-3 text-lg text-white/60">
+        <h1 className="text-foreground text-5xl font-bold tracking-tight">{queue.name}</h1>
+        <p className="text-muted-foreground mt-3 text-lg">
           {currentOrganization?.name}
-          <span className="mx-3 text-white/30">•</span>
+          <span className="mx-3 opacity-50">•</span>
           <span className="text-primary font-medium">{waitingCount}</span> pessoa(s) na fila
         </p>
       </div>
@@ -122,13 +121,13 @@ export default function TotemPage() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            className="bg-background/90 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
             onClick={() => setEmittedTicket(null)}
           >
             <motion.div
               initial={{ y: 50 }}
               animate={{ y: 0 }}
-              className="rounded-3xl bg-white p-12 text-center shadow-2xl"
+              className="bg-card rounded-3xl p-12 text-center shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-4 flex justify-center">
@@ -142,16 +141,16 @@ export default function TotemPage() {
                   />
                 </div>
               </div>
-              <p className="text-lg text-slate-500">{emittedTicket.categoryName}</p>
+              <p className="text-muted-foreground text-lg">{emittedTicket.categoryName}</p>
               <p
                 className="my-4 text-7xl font-black tracking-wider"
                 style={{ color: emittedTicket.categoryColor }}
               >
                 {emittedTicket.fullCode}
               </p>
-              <p className="text-slate-500">
+              <p className="text-muted-foreground">
                 {emittedTicket.isPriority && (
-                  <span className="bg-warning/20 text-warning mr-2 rounded-full px-3 py-1">
+                  <span className="bg-chart-4/20 text-chart-4 mr-2 rounded-full px-3 py-1">
                     Preferencial
                   </span>
                 )}
@@ -179,26 +178,24 @@ export default function TotemPage() {
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           >
             <Card
-              className="glass cursor-pointer border-2 bg-white/5 backdrop-blur-xl transition-all hover:shadow-2xl"
+              className="cursor-pointer border-2 backdrop-blur-xl"
               style={{ borderColor: category.color + '40' }}
               onClick={() => handleEmitTicket(category.id)}
             >
               <CardContent className="p-8 text-center">
-                <div
-                  className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-bold text-white shadow-lg transition-transform duration-300"
-                  style={{
-                    backgroundColor: category.color,
-                    boxShadow: `0 8px 32px ${category.color}40`,
-                  }}
-                >
-                  {category.prefix}
+                <div className="mb-6 flex justify-center">
+                  <FeatureIcon
+                    icon={Printer}
+                    className="h-20 w-20"
+                    iconClassName="h-10 w-10"
+                  />
                 </div>
-                <h3 className="text-xl font-semibold text-white">{category.name}</h3>
-                <p className="mt-1 text-sm text-white/60">
+                <h3 className="text-foreground text-xl font-semibold">{category.name}</h3>
+                <p className="text-muted-foreground mt-1 text-sm">
                   Tempo estimado: ~{category.estimatedTime} min
                 </p>
                 <Button
-                  className="mt-6 w-full shadow-lg transition-all hover:scale-[1.02]"
+                  className="mt-6 w-full shadow-lg"
                   style={{
                     backgroundColor: category.color,
                     boxShadow: `0 4px 20px ${category.color}40`,
@@ -221,7 +218,7 @@ export default function TotemPage() {
             <Button
               key={`pref-${category.id}`}
               variant="outline"
-              className="border-warning text-warning hover:bg-warning/10"
+              className="border-chart-4 text-chart-4 hover:bg-chart-4/10"
               onClick={() => handleEmitTicket(category.id, true)}
               disabled={isEmitting}
             >

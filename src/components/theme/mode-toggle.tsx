@@ -19,7 +19,7 @@ export function ModeToggle() {
         <Button
           variant="outline"
           size="icon"
-          className="border-border"
+          className="bg-background/50 text-foreground hover:bg-background/80 border-border border backdrop-blur-sm"
         >
           {theme === 'light' && <Sun className="h-[1.2rem] w-[1.2rem]" />}
           {theme === 'dark' && <Moon className="h-[1.2rem] w-[1.2rem]" />}

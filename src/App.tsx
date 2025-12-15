@@ -23,8 +23,6 @@ const ChatLabPage = lazy(() => import('./pages/dashboard/chat-lab/ChatLabPage'))
 const TotemPage = lazy(() => import('./pages/queue/TotemPage'))
 const MonitorPage = lazy(() => import('./pages/queue/MonitorPage'))
 const CounterPage = lazy(() => import('./pages/queue/CounterPage'))
-// E2E testing only - works with Firebase Emulator
-const E2ELogin = lazy(() => import('./pages/E2ELogin'))
 
 function App() {
   return (
@@ -52,23 +50,9 @@ function App() {
                 </MainLayout>
               }
             />
-            {/* E2E Testing Route - only works with Firebase Emulator */}
-            <Route
-              path="/e2e-login"
-              element={<E2ELogin />}
-            />
             <Route element={<PublicOnlyRoute />}>
               <Route
-                path="/auth"
-                element={<Auth />}
-              />
-              {/* Redirect old routes to /auth */}
-              <Route
                 path="/login"
-                element={<Auth />}
-              />
-              <Route
-                path="/register"
                 element={<Auth />}
               />
             </Route>

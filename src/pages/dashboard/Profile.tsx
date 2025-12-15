@@ -6,6 +6,7 @@ import { Loader2, Save, User } from 'lucide-react'
 import { userService } from '@/lib/userService'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FeatureIcon } from '@/components/ui/feature-icon'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
@@ -64,7 +65,7 @@ export default function Profile() {
         <p className="text-muted-foreground mt-2 text-lg">Gerencie suas informações pessoais</p>
       </div>
 
-      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+      <Card>
         <CardHeader>
           <CardTitle>Informações da Conta</CardTitle>
           <CardDescription>Seus dados vinculados à conta Google</CardDescription>
@@ -74,19 +75,19 @@ export default function Profile() {
           <div className="flex items-center gap-6">
             {profile?.photoURL ? (
               <div className="group relative">
-                <div className="from-primary/30 to-chart-2/30 absolute -inset-1 rounded-full bg-linear-to-br blur-sm transition-all group-hover:blur-md" />
                 <img
                   src={profile.photoURL}
                   alt={`Foto de perfil de ${profile.displayName || 'usuário'}`}
-                  className="relative h-24 w-24 rounded-full object-cover shadow-lg ring-2 ring-white/10 transition-transform group-hover:scale-105"
+                  className="ring-border relative h-24 w-24 rounded-full object-cover shadow-lg ring-2"
                 />
               </div>
             ) : (
               <div className="group relative">
-                <div className="from-primary/30 to-chart-2/30 absolute -inset-1 rounded-full bg-linear-to-br blur-sm transition-all group-hover:blur-md" />
-                <div className="from-primary/20 to-success/20 text-primary relative flex h-24 w-24 items-center justify-center rounded-full border border-white/5 bg-linear-to-br shadow-lg transition-transform group-hover:scale-105">
-                  <User className="h-12 w-12" />
-                </div>
+                <FeatureIcon
+                  icon={User}
+                  className="h-24 w-24"
+                  iconClassName="h-12 w-12"
+                />
               </div>
             )}
             <div>
@@ -103,7 +104,7 @@ export default function Profile() {
               type="email"
               value={profile?.email || ''}
               disabled
-              className="bg-muted/50 border-border/50"
+              className="bg-muted border-border"
             />
             <p className="text-muted-foreground text-xs">
               Email vinculado à sua conta Google (não editável)
@@ -119,7 +120,7 @@ export default function Profile() {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Seu nome"
-              className="bg-background/50 focus:bg-background transition-colors"
+              className="bg-input focus:bg-background transition-colors"
             />
           </div>
 

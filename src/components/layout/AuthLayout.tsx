@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
+import { FeatureIcon } from '@/components/ui/feature-icon'
 import { ModeToggle } from '@/components/theme/mode-toggle'
 
 interface AuthLayoutProps {
@@ -22,25 +23,19 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         <div className="bg-chart-2/5 absolute right-1/4 bottom-0 h-96 w-96 rounded-full blur-3xl" />
       </div>
 
-      {/* Static Grid Overlay */}
-      <div
-        className="pointer-events-none fixed inset-0 -z-20 h-full w-full bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-size-[14px_24px] opacity-10"
-        aria-hidden="true"
-      />
-
       {/* Back Button */}
       <Button
         variant="outline"
         size="icon"
         aria-label="Voltar"
-        className="bg-background/50 text-foreground hover:bg-background/80 border-border absolute top-4 left-4 z-20 border backdrop-blur-sm md:top-8 md:left-8"
+        className="bg-background/50 text-foreground hover:bg-background/80 border-border absolute top-[16px] left-[16px] z-20 border backdrop-blur-sm md:top-4 md:left-4"
         onClick={() => navigate('/')}
       >
         <ArrowLeft className="h-4 w-4" />
       </Button>
 
       {/* Theme Toggle */}
-      <div className="absolute top-4 right-4 z-20 md:top-8 md:right-8">
+      <div className="absolute top-[16px] right-[16px] z-20 md:top-4 md:right-4">
         <ModeToggle />
       </div>
 
@@ -49,12 +44,11 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         <div className="mb-8 text-center">
           <div className="mb-4 flex justify-center">
             {/* Logo with glow effect */}
-            <div className="relative">
-              <div className="bg-primary/30 absolute inset-0 rounded-xl blur-xl" />
-              <div className="bg-primary text-primary-foreground relative flex h-12 w-12 items-center justify-center rounded-xl shadow-lg">
-                <LogoSvg className="h-7 w-7 fill-current" />
-              </div>
-            </div>
+            <FeatureIcon
+              icon={LogoSvg}
+              className="h-12 w-12"
+              iconClassName="h-7 w-7"
+            />
           </div>
           <h1 className="text-foreground text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
           <p className="text-muted-foreground mt-2 text-sm">{subtitle}</p>

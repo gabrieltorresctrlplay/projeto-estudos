@@ -14,15 +14,14 @@ const badgeVariants = cva(
         secondary:
           'border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90',
         destructive:
-          'border-transparent bg-destructive text-white shadow-sm [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
-        outline: 'text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
-        success:
-          'border-transparent bg-success text-success-foreground shadow-sm [a&]:hover:bg-success/90',
-        warning:
-          'border-transparent bg-warning text-warning-foreground shadow-sm [a&]:hover:bg-warning/90',
-        info: 'border-transparent bg-info text-info-foreground shadow-sm [a&]:hover:bg-info/90',
+          'border-transparent bg-destructive text-destructive-foreground shadow-sm [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40',
+        outline:
+          'text-foreground border-border [a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
+        muted: 'border-transparent bg-muted text-muted-foreground shadow-sm [a&]:hover:bg-muted/90',
+        accent:
+          'border-transparent bg-accent text-accent-foreground shadow-sm [a&]:hover:bg-accent/90',
         gradient:
-          'border-transparent bg-gradient-to-r from-primary to-chart-2 text-white shadow-sm',
+          'border-transparent bg-gradient-to-r from-primary to-chart-2 text-primary-foreground shadow-sm',
       },
     },
     defaultVariants: {

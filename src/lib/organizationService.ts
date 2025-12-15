@@ -112,7 +112,6 @@ export const organizationService = {
       const seen = new Set<string>()
       const deduplicated = sorted.filter((m) => {
         if (seen.has(m.organizationId)) {
-          console.warn(`Duplicate membership found for org ${m.organizationId}, skipping`)
           return false
         }
         seen.add(m.organizationId)
@@ -364,7 +363,6 @@ export const inviteService = {
 
       if (existingMembership) {
         // Already a member, just delete the invite and return existing membership ID
-        console.log('User already member of org, skipping creation')
         await deleteDoc(doc(db, 'invites', invite.id))
         return { memberId: existingMembership.id, error: null }
       }

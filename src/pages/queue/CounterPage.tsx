@@ -153,7 +153,7 @@ export default function CounterPage() {
   }
 
   return (
-    <div className="from-background via-background to-muted/30 min-h-screen bg-linear-to-b p-6">
+    <div className="from-background via-background to-muted min-h-screen bg-linear-to-b p-6">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
@@ -167,8 +167,8 @@ export default function CounterPage() {
             <Badge
               variant={counter?.status === 'open' ? 'default' : 'secondary'}
               className={cn(
-                counter?.status === 'open' && 'bg-success',
-                counter?.status === 'paused' && 'bg-warning',
+                counter?.status === 'open' && 'bg-primary',
+                counter?.status === 'paused' && 'bg-chart-4',
               )}
             >
               {counter?.status === 'open' && 'Aberto'}
@@ -248,8 +248,8 @@ export default function CounterPage() {
                       </div>
                       {currentTicket.isPriority && (
                         <Badge
-                          variant="warning"
-                          className="relative mt-4 shadow-md"
+                          variant="accent"
+                          className="bg-chart-4 text-primary-foreground relative mt-4 shadow-md"
                         >
                           Preferencial
                         </Badge>
@@ -275,7 +275,7 @@ export default function CounterPage() {
                           </Button>
                           <Button
                             size="lg"
-                            className="bg-success hover:bg-success/90"
+                            className="bg-primary hover:bg-primary/90"
                             onClick={handleStartServing}
                             disabled={isProcessing}
                           >
@@ -289,7 +289,7 @@ export default function CounterPage() {
                           <Button
                             size="lg"
                             variant="outline"
-                            className="border-red-500 text-red-500 hover:bg-red-50"
+                            className="border-destructive text-destructive hover:bg-destructive/10"
                             onClick={() => handleFinish('no_show')}
                             disabled={isProcessing}
                           >
@@ -298,7 +298,7 @@ export default function CounterPage() {
                           </Button>
                           <Button
                             size="lg"
-                            className="bg-success hover:bg-success/90"
+                            className="bg-primary hover:bg-primary/90"
                             onClick={() => handleFinish('finished')}
                             disabled={isProcessing}
                           >
@@ -354,12 +354,12 @@ export default function CounterPage() {
                         className={cn(
                           'flex items-center justify-between rounded-lg border p-3',
                           index === 0 && 'border-primary bg-primary/5',
-                          ticket.isPriority && 'border-amber-500 bg-amber-50 dark:bg-amber-950',
+                          ticket.isPriority && 'border-chart-4 bg-chart-4/10',
                         )}
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold text-white"
+                            className="text-primary-foreground flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold"
                             style={{ backgroundColor: ticket.categoryColor }}
                           >
                             {ticket.fullCode.slice(0, 1)}

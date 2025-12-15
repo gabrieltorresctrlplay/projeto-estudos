@@ -154,7 +154,7 @@ export default function QueuePage() {
           {queues.map((queue) => (
             <Card
               key={queue.id}
-              className="group border-border/50 bg-card/50 hover:bg-card hover:border-primary/20 transition-all hover:shadow-lg"
+              className="group"
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -179,7 +179,7 @@ export default function QueuePage() {
                 <div className="grid gap-4 md:grid-cols-3">
                   {/* Monitores */}
                   <Card
-                    className="border-border/40 bg-background/50 hover:bg-background hover:border-primary/30 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-md"
+                    className="border-border cursor-pointer"
                     onClick={() => handleOpenMonitorDialog(queue.id)}
                   >
                     <CardHeader className="pb-2">
@@ -204,7 +204,7 @@ export default function QueuePage() {
 
                   {/* Guichês */}
                   <Card
-                    className="border-border/40 bg-background/50 hover:bg-background hover:border-primary/30 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-md"
+                    className="border-border cursor-pointer"
                     onClick={async () => {
                       const { data } = await queueService.getCounters(queue.id)
                       if (data && data.length > 0) {
@@ -235,7 +235,7 @@ export default function QueuePage() {
                   </Card>
 
                   {/* Configurações */}
-                  <Card className="border-border/40 bg-muted/20 cursor-not-allowed border-dashed opacity-60">
+                  <Card className="bg-muted cursor-not-allowed border-dashed opacity-60">
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-muted-foreground text-base">
@@ -316,7 +316,7 @@ export default function QueuePage() {
 
           <div className="grid gap-4">
             <Card
-              className="hover:border-primary cursor-pointer transition-colors"
+              className="cursor-pointer transition-colors"
               onClick={() => {
                 if (selectedQueueId) {
                   window.open(`/queue/${selectedQueueId}/totem`, '_blank')
@@ -346,7 +346,7 @@ export default function QueuePage() {
             </Card>
 
             <Card
-              className="hover:border-primary cursor-pointer transition-colors"
+              className="cursor-pointer transition-colors"
               onClick={() => {
                 if (selectedQueueId) {
                   window.open(`/queue/${selectedQueueId}/monitor`, '_blank')

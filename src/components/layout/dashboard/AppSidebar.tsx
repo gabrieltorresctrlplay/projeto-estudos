@@ -59,7 +59,7 @@ export function AppSidebar() {
   const user = authService.getCurrentUser()
   const navigate = useNavigate()
   const { setTheme } = useTheme()
-  const { state } = useSidebar()
+  useSidebar()
   const { memberships, currentOrganization } = useOrganizationContext()
 
   // Check if user is a visitor (no memberships)
@@ -180,9 +180,9 @@ export function AppSidebar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                  side={state === 'collapsed' ? 'right' : 'bottom'}
+                  side="right"
                   align="end"
-                  sideOffset={4}
+                  sideOffset={12}
                 >
                   <DropdownMenuLabel className="p-0 font-normal">
                     <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
@@ -218,7 +218,7 @@ export function AppSidebar() {
                       <Moon className="mr-2 hidden h-4 w-4 dark:block" />
                       Tema
                     </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent>
+                    <DropdownMenuSubContent alignOffset={-37}>
                       <DropdownMenuItem
                         onSelect={(e) => {
                           e.preventDefault()

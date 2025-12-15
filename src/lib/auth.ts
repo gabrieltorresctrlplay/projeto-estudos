@@ -1,10 +1,4 @@
-import {
-  GoogleAuthProvider,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  type User,
-} from 'firebase/auth'
+import { GoogleAuthProvider, signInWithPopup, signOut, type User } from 'firebase/auth'
 
 import { auth } from './firebase'
 import { userService } from './userService'
@@ -33,19 +27,6 @@ export const authService = {
         throw profileError
       }
 
-      return { user: userCredential.user, error: null }
-    } catch (error) {
-      return { user: null, error: error as Error }
-    }
-  },
-
-  /**
-   * Sign in with email and password (ONLY for E2E testing with Firebase Emulator)
-   * This method should NOT be exposed in production UI
-   */
-  signInWithEmail: async (email: string, password: string) => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
       return { user: userCredential.user, error: null }
     } catch (error) {
       return { user: null, error: error as Error }

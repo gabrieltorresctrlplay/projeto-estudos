@@ -43,7 +43,7 @@ export default function Auth() {
       title="Bem-vindo"
       subtitle="Entre com sua conta Google para continuar"
     >
-      <Card className="border-border/50 bg-card/50 w-full max-w-md shadow-2xl backdrop-blur-xl">
+      <Card className="w-full max-w-md shadow-2xl backdrop-blur-xl">
         <div className="from-primary/5 pointer-events-none absolute inset-0 bg-linear-to-br via-transparent to-transparent" />
         <CardHeader className="relative text-center">
           <CardTitle className="text-2xl">Entrar</CardTitle>
@@ -58,7 +58,7 @@ export default function Auth() {
 
           <Button
             variant="outline"
-            className="bg-background/80 hover:bg-background hover:border-primary/50 group relative h-11 w-full overflow-hidden text-base transition-all hover:shadow-md active:scale-95"
+            className="bg-background/80 border-border hover:bg-background group relative h-11 w-full overflow-hidden border text-base transition-all active:scale-95"
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
@@ -75,14 +75,14 @@ export default function Auth() {
             Ao continuar, você aceita nossos{' '}
             <a
               href="#"
-              className="hover:text-primary underline transition-colors"
+              className="hover:text-foreground underline transition-colors"
             >
               Termos de Serviço
             </a>{' '}
             e{' '}
             <a
               href="#"
-              className="hover:text-primary underline transition-colors"
+              className="hover:text-foreground underline transition-colors"
             >
               Política de Privacidade
             </a>

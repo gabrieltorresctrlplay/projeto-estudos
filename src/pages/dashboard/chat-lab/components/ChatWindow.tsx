@@ -58,7 +58,7 @@ export function ChatWindow({ chatId, otherUser, onBack }: ChatWindowProps) {
   }
 
   return (
-    <div className="dark:bg-background/95 relative flex h-full flex-col bg-[#efeae2]">
+    <div className="bg-muted relative flex h-full flex-col">
       {/* WhatsApp-like background pattern layer */}
       <div className="pointer-events-none absolute inset-0 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat opacity-[0.06]"></div>
 
@@ -161,8 +161,8 @@ export function ChatWindow({ chatId, otherUser, onBack }: ChatWindowProps) {
                   className={cn(
                     'relative max-w-[80%] rounded-lg px-3 py-1.5 text-sm wrap-break-word shadow-sm md:max-w-[60%]',
                     isMe
-                      ? 'dark:bg-primary dark:text-primary-foreground rounded-tr-none bg-[#d9fdd3] text-gray-900'
-                      : 'dark:bg-muted dark:text-foreground rounded-tl-none bg-white text-gray-900',
+                      ? 'bg-primary text-primary-foreground rounded-tr-none'
+                      : 'bg-card text-card-foreground rounded-tl-none',
                   )}
                 >
                   <p>{msg.text}</p>
@@ -182,7 +182,7 @@ export function ChatWindow({ chatId, otherUser, onBack }: ChatWindowProps) {
       {/* Input Area */}
       <div className="bg-card z-10 border-t p-3">
         <form
-          className="bg-muted/50 ring-ring flex items-end gap-2 rounded-3xl border p-1.5 transition-all focus-within:ring-1"
+          className="bg-muted ring-ring flex items-end gap-2 rounded-3xl border p-1.5 transition-all focus-within:ring-1"
           onSubmit={handleSendMessage}
         >
           <Button

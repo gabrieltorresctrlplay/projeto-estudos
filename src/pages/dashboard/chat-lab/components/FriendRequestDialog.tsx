@@ -154,7 +154,7 @@ export function FriendRequestDialog() {
         )}
 
         {foundUser && (
-          <div className="bg-muted/50 mt-2 flex items-center justify-between rounded-lg border p-4">
+          <div className="bg-muted mt-2 flex items-center justify-between rounded-lg border p-4">
             <div className="flex items-center gap-3">
               <Avatar>
                 <AvatarImage src={foundUser.photoURL || undefined} />

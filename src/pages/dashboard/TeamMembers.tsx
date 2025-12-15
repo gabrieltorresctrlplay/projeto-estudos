@@ -9,6 +9,7 @@ import { useCompanySync } from '@/hooks/useCompanySync'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FeatureIcon } from '@/components/ui/feature-icon'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { InviteMemberDialog } from '@/components/dashboard/InviteMemberDialog'
 
@@ -212,7 +213,7 @@ export default function TeamMembers() {
       </div>
 
       {/* Members List */}
-      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+      <Card>
         <CardHeader>
           <CardTitle>Membros Ativos</CardTitle>
           <CardDescription>{members.length} membro(s) na organização</CardDescription>
@@ -222,7 +223,7 @@ export default function TeamMembers() {
             {members.map((member) => (
               <div
                 key={member.id}
-                className="group border-border/40 hover:bg-muted/30 hover:border-primary/20 flex items-center justify-between rounded-lg border p-4 transition-all"
+                className="group border-border hover:bg-muted flex items-center justify-between rounded-lg border p-4 transition-all"
               >
                 <div className="flex items-center gap-4">
                   {/* Avatar */}
@@ -230,19 +231,21 @@ export default function TeamMembers() {
                     <img
                       src={member.user.photoURL}
                       alt={member.user.displayName || 'Avatar'}
-                      className="group-hover:ring-primary/20 h-10 w-10 rounded-full object-cover ring-2 ring-transparent transition-all"
+                      className="h-10 w-10 rounded-full object-cover ring-2 ring-transparent transition-all"
                     />
                   ) : (
-                    <div className="bg-primary/10 text-primary group-hover:ring-primary/20 flex h-10 w-10 items-center justify-center rounded-full ring-2 ring-transparent transition-all">
-                      <User className="h-5 w-5" />
-                    </div>
+                    <FeatureIcon
+                      icon={User}
+                      className="h-10 w-10"
+                      iconClassName="h-5 w-5"
+                    />
                   )}
                   {/* Name and email */}
                   <div>
                     <p className="font-medium">
                       {member.userId === user?.uid ? 'Você' : member.user?.displayName || 'Membro'}
                     </p>
-                    <p className="text-muted-foreground group-hover:text-primary/80 text-sm transition-colors">
+                    <p className="text-muted-foreground text-sm transition-colors">
                       {member.user?.email || member.userId}
                     </p>
                   </div>
@@ -319,7 +322,7 @@ export default function TeamMembers() {
                             onClick={() => copyToken(invite.token)}
                           >
                             {copiedToken === invite.token ? (
-                              <Check className="h-3 w-3 text-green-500" />
+                              <Check className="text-primary h-3 w-3" />
                             ) : (
                               <Copy className="h-3 w-3" />
                             )}

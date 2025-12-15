@@ -117,7 +117,7 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
               )}
             </div>
 
-            <div className="bg-muted/50 rounded-lg p-3 text-xs">
+            <div className="bg-muted rounded-lg p-3 text-xs">
               <p className="text-muted-foreground">
                 • O token expira em <strong>24 horas</strong>
               </p>
@@ -152,7 +152,7 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
           </form>
         ) : (
           <div className="space-y-4">
-            <div className="bg-muted/50 flex items-center gap-2 rounded-lg p-4">
+            <div className="bg-muted flex items-center gap-2 rounded-lg p-4">
               <Ticket className="text-primary h-5 w-5" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Token gerado!</p>
@@ -177,7 +177,7 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
                   className="shrink-0"
                 >
                   {copied ? (
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="text-success h-4 w-4" />
                   ) : (
                     <Copy className="h-4 w-4" />
                   )}

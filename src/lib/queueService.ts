@@ -213,8 +213,6 @@ export const queueService = {
         updatedAt: serverTimestamp(),
       })
 
-      console.log(`[QueueService] Ticket emitido: ${fullCode}`)
-
       return {
         ticket: { id: ticketRef.id, ...ticketData, createdAt: Timestamp.now() } as Ticket,
         error: null,
@@ -359,8 +357,6 @@ export const queueService = {
         currentTicketCode: nextTicket.fullCode,
         updatedAt: serverTimestamp(),
       })
-
-      console.log(`[QueueService] Chamando: ${nextTicket.fullCode} no ${counter.name}`)
 
       return {
         ticket: {
