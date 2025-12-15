@@ -260,17 +260,19 @@ export function ChatSidebar({ onSelectFriend }: ChatSidebarProps) {
                         <Button
                           size="icon"
                           variant="outline"
+                          aria-label="Recusar solicitação"
                           className="text-destructive hover:bg-destructive/10 h-7 w-7"
                           onClick={() => handleRejectRequest(req)}
                         >
-                          <span className="sr-only">Recusar</span>×
+                          ×
                         </Button>
                         <Button
                           size="icon"
+                          aria-label="Aceitar solicitação"
                           className="h-7 w-7"
                           onClick={() => handleAcceptRequest(req)}
                         >
-                          <span className="sr-only">Aceitar</span>✓
+                          ✓
                         </Button>
                       </div>
                     </div>

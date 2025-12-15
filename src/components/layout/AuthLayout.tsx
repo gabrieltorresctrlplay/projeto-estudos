@@ -32,6 +32,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
       <Button
         variant="outline"
         size="icon"
+        aria-label="Voltar"
         className="bg-background/50 text-foreground hover:bg-background/80 border-border absolute top-4 left-4 z-20 border backdrop-blur-sm md:top-8 md:left-8"
         onClick={() => navigate('/')}
       >

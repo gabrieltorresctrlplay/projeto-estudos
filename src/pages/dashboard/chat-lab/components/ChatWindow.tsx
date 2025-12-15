@@ -69,6 +69,7 @@ export function ChatWindow({ chatId, otherUser, onBack }: ChatWindowProps) {
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Voltar para lista de conversas"
               className="md:hidden"
               onClick={onBack}
             >
@@ -112,12 +113,14 @@ export function ChatWindow({ chatId, otherUser, onBack }: ChatWindowProps) {
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Iniciar chamada de vídeo"
           >
             <Video className="h-5 w-5" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Iniciar chamada de voz"
           >
             <Phone className="h-5 w-5" />
           </Button>
@@ -126,6 +129,7 @@ export function ChatWindow({ chatId, otherUser, onBack }: ChatWindowProps) {
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Mais opções"
               >
                 <MoreVertical className="h-5 w-5" />
               </Button>
@@ -185,6 +189,7 @@ export function ChatWindow({ chatId, otherUser, onBack }: ChatWindowProps) {
             type="button"
             size="icon"
             variant="ghost"
+            aria-label="Inserir emoji"
             className="text-muted-foreground h-10 w-10 shrink-0 rounded-full"
           >
             <span className="text-xl">😊</span>
@@ -198,6 +203,7 @@ export function ChatWindow({ chatId, otherUser, onBack }: ChatWindowProps) {
           <Button
             type="submit"
             size="icon"
+            aria-label="Enviar mensagem"
             className={cn(
               'h-10 w-10 shrink-0 rounded-full transition-all',
               !inputText.trim() ? 'opacity-50' : 'opacity-100',

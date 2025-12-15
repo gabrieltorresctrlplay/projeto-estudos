@@ -253,6 +253,7 @@ export default function TeamMembers() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label={`Remover ${member.user?.displayName || 'membro'}`}
                       className="text-destructive hover:text-destructive hover:bg-destructive/10 opacity-0 transition-all group-hover:opacity-100 active:scale-95"
                       onClick={() =>
                         handleRemoveMember(member.id, member.user?.displayName || 'Membro')
@@ -313,6 +314,7 @@ export default function TeamMembers() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            aria-label="Copiar token do convite"
                             className="h-6 w-6"
                             onClick={() => copyToken(invite.token)}
                           >
@@ -339,6 +341,7 @@ export default function TeamMembers() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Excluir convite"
                         onClick={() => handleDeleteInvite(invite.id)}
                         disabled={deletingInvite === invite.id}
                         className="text-destructive hover:text-destructive"

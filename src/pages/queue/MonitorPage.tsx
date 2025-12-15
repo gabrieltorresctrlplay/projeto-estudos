@@ -83,6 +83,7 @@ export default function MonitorPage() {
       <Button
         variant="ghost"
         size="icon"
+        aria-label={audioEnabled ? 'Desativar áudio' : 'Ativar áudio'}
         className="absolute top-6 right-6 z-10 rounded-full bg-white/5 text-white/60 backdrop-blur-sm transition-all hover:bg-white/10 hover:text-white"
         onClick={() => setAudioEnabled(!audioEnabled)}
       >

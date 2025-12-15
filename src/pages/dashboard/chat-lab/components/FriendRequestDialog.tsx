@@ -136,6 +136,7 @@ export function FriendRequestDialog() {
           <Button
             type="submit"
             size="icon"
+            aria-label="Buscar usuário"
             disabled={isSearching || !email}
           >
             {isSearching ? (

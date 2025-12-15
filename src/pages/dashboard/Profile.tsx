@@ -77,7 +77,7 @@ export default function Profile() {
                 <div className="from-primary/30 to-chart-2/30 absolute -inset-1 rounded-full bg-linear-to-br blur-sm transition-all group-hover:blur-md" />
                 <img
                   src={profile.photoURL}
-                  alt="Avatar"
+                  alt={`Foto de perfil de ${profile.displayName || 'usuário'}`}
                   className="relative h-24 w-24 rounded-full object-cover shadow-lg ring-2 ring-white/10 transition-transform group-hover:scale-105"
                 />
               </div>
