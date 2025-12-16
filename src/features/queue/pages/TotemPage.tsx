@@ -7,24 +7,15 @@ import {
 import { trackingService } from '@/features/queue/services/trackingService'
 import type { Queue, ServiceCategory, Ticket as TicketType } from '@/features/queue/types/queue'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Hand, Loader2, UserCheck, Users } from 'lucide-react'
+import { Hand, Loader2, User, Users } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 const IDLE_TIMEOUT_MS = 20000
 
-/**
- * TotemPage - Zen Self-Service Kiosk
- *
- * Design Philosophy:
- * - Calm in chaos. Queues are stressful; the interface is the antidote.
- * - Touch is intimate. Make every tap feel intentional and rewarding.
- * - Typography breathes. Give the numbers room to exist.
- */
 export default function TotemPage() {
   const { queueId } = useParams<{ queueId: string }>()
-  const navigate = useNavigate()
 
   const [queue, setQueue] = useState<Queue | null>(null)
   const [categories, setCategories] = useState<ServiceCategory[]>([])
@@ -32,7 +23,6 @@ export default function TotemPage() {
   const [isEmitting, setIsEmitting] = useState(false)
   const [emittedTicket, setEmittedTicket] = useState<TicketType | null>(null)
   const [trackingUrl, setTrackingUrl] = useState<string | null>(null)
-  const [waitingCount, setWaitingCount] = useState(0)
   const [screen, setScreen] = useState<'welcome' | 'selection'>('welcome')
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -67,9 +57,11 @@ export default function TotemPage() {
 
     loadData()
 
-    // Subscribe to waiting queue and count tickets
-    const unsubscribe = realtimeService.subscribeToWaitingQueue(queueId, (tickets) => {
-      setWaitingCount(tickets.length)
+    loadData()
+
+    // Subscribe to waiting queue (silent)
+    const unsubscribe = realtimeService.subscribeToWaitingQueue(queueId, () => {
+      // Logic for waitingCount extracted if needed later
     })
     return () => unsubscribe()
   }, [queueId])
@@ -95,11 +87,13 @@ export default function TotemPage() {
       if (token) setTrackingUrl(trackingService.getTrackingUrl(token))
 
       setEmittedTicket(ticket)
+
+      // Auto reset after 10s
       setTimeout(() => {
         setEmittedTicket(null)
         setTrackingUrl(null)
         setScreen('welcome')
-      }, 12000)
+      }, 10000)
     }
     setIsEmitting(false)
   }
@@ -107,283 +101,172 @@ export default function TotemPage() {
   if (isLoading) {
     return (
       <div className="bg-background flex h-screen items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.5 }}
-          className="text-muted-foreground"
-        >
-          <Loader2 className="h-12 w-12 animate-spin" />
-        </motion.div>
+        <Loader2 className="text-primary h-12 w-12 animate-spin" />
       </div>
     )
   }
 
-  if (!queue) {
-    return (
-      <div className="bg-background text-foreground flex h-screen flex-col items-center justify-center">
-        <span className="text-muted-foreground text-lg">Fila não encontrada</span>
-        <button
-          onClick={() => navigate(-1)}
-          className="text-primary mt-4 text-sm underline"
-        >
-          Voltar
-        </button>
-      </div>
-    )
-  }
+  if (!queue) return null
 
   return (
-    <div className="bg-background text-foreground relative flex h-screen flex-col overflow-hidden select-none">
+    <div className="relative flex h-screen flex-col overflow-hidden bg-slate-50 font-sans select-none">
       <AnimatePresence mode="wait">
-        {/* Screen 1: Welcome - Pure zen */}
+        {/* WELCOME SCREEN */}
         {screen === 'welcome' && (
           <motion.div
             key="welcome"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.3 } }}
-            transition={{ duration: 0.6 }}
-            className="flex h-full flex-col items-center justify-center"
+            exit={{ opacity: 0, y: -50 }}
+            className="flex h-full cursor-pointer flex-col items-center justify-center bg-white"
             onClick={() => setScreen('selection')}
           >
             <motion.div
-              className="flex flex-col items-center text-center"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              className="mb-12 rounded-full bg-blue-50 p-12"
             >
-              {/* Gentle pulsing icon */}
-              <motion.div
-                animate={{
-                  scale: [1, 1.04, 1],
-                  opacity: [0.6, 1, 0.6],
-                }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                className="text-primary mb-16"
-              >
-                <Hand
-                  className="h-24 w-24"
-                  strokeWidth={1}
-                />
-              </motion.div>
-
-              <h1 className="text-foreground text-6xl font-light tracking-tight md:text-7xl">
-                Retire sua senha
-              </h1>
-
-              <p className="text-muted-foreground/60 mt-8 text-xl font-light">
-                Toque em qualquer lugar
-              </p>
-
-              {/* Subtle queue count */}
-              {waitingCount > 0 && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.4 }}
-                  className="text-muted-foreground mt-24 text-sm"
-                >
-                  {waitingCount} {waitingCount === 1 ? 'pessoa' : 'pessoas'} aguardando
-                </motion.p>
-              )}
+              <Hand className="h-24 w-24 text-blue-600" />
             </motion.div>
+
+            <h1 className="max-w-2xl px-4 text-center text-4xl font-bold tracking-tight text-slate-900 md:text-6xl">
+              Toque para retirar sua senha
+            </h1>
+
+            <p className="mt-6 text-xl font-medium text-slate-500">{queue.name}</p>
+
+            <div className="absolute bottom-12 text-sm text-slate-400">Desenvolvido por Oiee</div>
           </motion.div>
         )}
 
-        {/* Screen 2: Selection - Two massive touch targets */}
+        {/* SELECTION SCREEN */}
         {screen === 'selection' && (
           <motion.div
             key="selection"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex h-full flex-col"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            className="flex h-full flex-col gap-8 p-8 md:p-12"
           >
-            {/* Minimal header */}
-            <header className="px-12 pt-12 pb-8 text-center">
-              <motion.h1
-                initial={{ y: -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 0.5 }}
-                className="text-muted-foreground text-sm font-medium tracking-[0.2em] uppercase"
-              >
-                {queue.name}
-              </motion.h1>
+            <header className="mb-4 text-center">
+              <h2 className="text-2xl font-semibold text-slate-700">
+                Selecione o tipo de atendimento
+              </h2>
             </header>
 
-            {/* Two massive buttons - the only choice */}
-            <main className="flex flex-1 items-center justify-center gap-8 px-12 pb-12">
-              {/* Regular Service */}
+            <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 md:flex-row md:gap-12">
+              {/* GENERAL TICKET */}
               <motion.button
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => handleEmitTicket(false)}
                 disabled={isEmitting}
-                className="bg-card hover:bg-muted/50 group flex h-[70vh] flex-1 flex-col items-center justify-center rounded-[2rem] border transition-all duration-300"
+                className="group relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[2.5rem] bg-linear-to-br from-blue-500 to-indigo-600 p-8 text-white shadow-2xl shadow-blue-900/20"
               >
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                  className="flex flex-col items-center"
-                >
-                  <Users
-                    className="text-muted-foreground mb-8 h-20 w-20"
-                    strokeWidth={1}
-                  />
-                  <span className="text-foreground text-4xl font-light tracking-tight">Geral</span>
-                  <span className="text-muted-foreground/60 mt-4 text-lg font-light">
-                    Atendimento comum
-                  </span>
-                </motion.div>
+                <div className="absolute top-0 left-0 h-full w-full bg-white/0 transition-colors group-hover:bg-white/10" />
+                <div className="mb-8 rounded-full bg-white/20 p-8 backdrop-blur-md">
+                  <Users className="h-16 w-16 text-white" />
+                </div>
+                <span className="text-4xl font-bold tracking-tight">Geral</span>
+                <span className="mt-4 text-lg font-medium text-blue-100">Atendimento Comum</span>
               </motion.button>
 
-              {/* Priority Service */}
+              {/* PRIORITY TICKET */}
               <motion.button
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => handleEmitTicket(true)}
                 disabled={isEmitting}
-                className="border-primary/30 bg-primary/5 hover:bg-primary/10 group flex h-[70vh] flex-1 flex-col items-center justify-center rounded-[2rem] border transition-all duration-300"
+                className="group relative flex flex-1 flex-col items-center justify-center overflow-hidden rounded-[2.5rem] bg-linear-to-br from-amber-500 to-orange-600 p-8 text-white shadow-2xl shadow-orange-900/20"
               >
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="flex flex-col items-center"
-                >
-                  <UserCheck
-                    className="text-primary mb-8 h-20 w-20"
-                    strokeWidth={1}
-                  />
-                  <span className="text-primary text-4xl font-light tracking-tight">
-                    Preferencial
-                  </span>
-                  <span className="text-muted-foreground/60 mt-4 text-lg font-light">
-                    Idosos, gestantes, PCD
-                  </span>
-                </motion.div>
+                <div className="absolute top-0 left-0 h-full w-full bg-white/0 transition-colors group-hover:bg-white/10" />
+                <div className="mb-8 rounded-full bg-white/20 p-8 backdrop-blur-md">
+                  <User className="h-16 w-16 text-white" />
+                </div>
+                <span className="text-4xl font-bold tracking-tight">Preferencial</span>
+                <span className="mt-4 text-lg font-medium text-amber-100">
+                  Idosos, Gestantes, PCD
+                </span>
               </motion.button>
-            </main>
+            </div>
 
-            {/* Loading overlay */}
-            {isEmitting && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="bg-background/80 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
-              >
-                <Loader2 className="text-primary h-16 w-16 animate-spin" />
-              </motion.div>
-            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setScreen('welcome')
+              }}
+              className="mx-auto mt-8 px-8 py-4 font-medium text-slate-400 hover:text-slate-600"
+            >
+              Cancelar
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Success Modal - Ticket issued */}
+      {/* TICKET SUCCESS MODAL */}
       <AnimatePresence>
         {emittedTicket && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="bg-background fixed inset-0 z-50 flex items-center justify-center"
-            onClick={() => {
-              setEmittedTicket(null)
-              setTrackingUrl(null)
-              setScreen('welcome')
-            }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-md"
+            onClick={() => setEmittedTicket(null)}
           >
             <motion.div
-              initial={{ scale: 0.9, y: 30 }}
+              initial={{ scale: 0.8, y: 50 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="flex flex-col items-center text-center"
+              className="w-full max-w-md rounded-[2.5rem] bg-white p-8 text-center shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Success indicator - minimal */}
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: 'spring' }}
-                className="text-primary mb-12"
-              >
-                <svg
-                  className="h-16 w-16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    className="text-primary/20"
-                  />
-                  <motion.path
-                    d="M8 12l2.5 2.5L16 9"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ delay: 0.4, duration: 0.4 }}
-                  />
-                </svg>
-              </motion.div>
+              <div className="mb-6 flex justify-center">
+                <div className="rounded-full bg-green-100 p-4">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', delay: 0.2 }}
+                  >
+                    <Hand className="h-10 w-10 rotate-12 text-green-600" />
+                  </motion.div>
+                </div>
+              </div>
 
-              {/* THE NUMBER - Absolute protagonist */}
-              <motion.div
-                className="relative"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <span className="text-primary block text-[clamp(6rem,18vw,14rem)] leading-none font-black tracking-tighter">
+              <h2 className="mb-2 text-3xl font-bold text-slate-800">Sua senha é</h2>
+
+              <div className="my-8 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 py-8">
+                <span
+                  className={`text-7xl font-black tracking-tighter ${emittedTicket.isPriority ? 'text-orange-500' : 'text-blue-600'}`}
+                >
                   {emittedTicket.fullCode}
                 </span>
-              </motion.div>
+                <p className="mt-2 text-sm font-medium tracking-widest text-slate-400 uppercase">
+                  {emittedTicket.isPriority ? 'Preferencial' : 'Geral'}
+                </p>
+              </div>
 
-              {/* Type indicator */}
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.5 }}
-                transition={{ delay: 0.5 }}
-                className="text-muted-foreground mt-8 text-lg font-light"
-              >
-                {emittedTicket.isPriority ? 'Atendimento Preferencial' : 'Atendimento Geral'}
-              </motion.p>
-
-              {/* QR Code for tracking */}
               {trackingUrl && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="mt-12 flex flex-col items-center"
-                >
-                  <div className="rounded-2xl bg-white p-4">
+                <div className="mb-6 flex flex-col items-center gap-4">
+                  <div className="rounded-xl border bg-white p-3 shadow-sm">
                     <QRCodeSVG
                       value={trackingUrl}
-                      size={120}
-                      level="M"
+                      size={100}
                     />
                   </div>
-                  <p className="text-muted-foreground/60 mt-4 text-sm font-light">
-                    Escaneie para acompanhar
-                  </p>
-                </motion.div>
+                  <p className="text-xs text-slate-400">Escaneie para acompanhar pelo celular</p>
+                </div>
               )}
 
-              {/* Instruction */}
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.3 }}
-                transition={{ delay: 0.8 }}
-                className="text-muted-foreground mt-16 text-sm"
-              >
-                Aguarde sua chamada no painel
-              </motion.p>
+              <p className="font-medium text-slate-500">Aguarde a chamada no monitor</p>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {isEmitting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-sm">
+          <Loader2 className="h-16 w-16 animate-spin text-blue-600" />
+        </div>
+      )}
     </div>
   )
 }

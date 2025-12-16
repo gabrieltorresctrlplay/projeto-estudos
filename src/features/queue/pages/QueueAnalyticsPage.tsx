@@ -55,8 +55,10 @@ export default function QueueAnalyticsPage() {
       if (queueRes.data) setQueue(queueRes.data)
 
       if (summaryRes.error) {
+        console.error('[AnalyticsPage] Erro metrics:', summaryRes.error)
         setError(summaryRes.error)
       } else if (summaryRes.data) {
+        console.log('[AnalyticsPage] Dados recebidos:', summaryRes.data)
         setMetrics(summaryRes.data.today)
         setWeekSummary(summaryRes.data.weekTotal)
       }

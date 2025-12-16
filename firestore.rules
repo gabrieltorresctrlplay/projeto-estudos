@@ -43,6 +43,45 @@ service cloud.firestore {
     // permitimos leitura e escrita livre para qualquer usuário LOGADO.
     // Isso facilita o desenvolvimento e testes (playwright e emulador).
     // NÃO USAR EM PRODUÇÃO COM DADOS REAIS DE CLIENTES.
+    // =================================================================
+    // QUEUE SYSTEM (Public Access Areas)
+    // =================================================================
+    
+    // Filas e Subcoleções
+    match /queues/{queueId} {
+      // Leitura pública (necessário para Monitor, Totem e Tracking)
+      allow read: if true;
+      allow write: if isAuthenticated();
+
+      // Tickets (Senhas)
+      match /tickets/{ticketId} {
+        // Leitura pública (Tracking)
+        allow read: if true;
+        
+        // Criação: Logados (Emissor) OU Público (Totem)
+        allow create: if isAuthenticated() || true; 
+        
+        // Update: Logados (Emissor/Admin) OU Público SE for apenas feedback
+        allow update: if isAuthenticated() || 
+          (request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['feedbackRating', 'feedbackComment', 'feedbackAt']));
+      }
+
+      // Contadores, Categorias, Métricas
+      match /{subcollection=**} {
+        allow read: if true;
+        allow write: if isAuthenticated();
+      }
+    }
+
+    // Métricas Globais (Collection Group)
+    match /{path=**}/queueMetrics/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // =================================================================
+    // REGRAS GERAIS (DEV MODE)
+    // =================================================================
     match /{document=**} {
       allow read, write: if isAuthenticated();
     }

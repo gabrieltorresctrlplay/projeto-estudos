@@ -173,10 +173,12 @@ export const metricsService = {
       const docSnap = await getDoc(doc(db, 'queueMetrics', docId))
 
       if (!docSnap.exists()) {
+        console.log('[MetricsService] getDailyMetrics: Documento não existe:', docId)
         return { data: null, error: null }
       }
 
       const rawData = docSnap.data()
+      console.log('[MetricsService] getDailyMetrics: Dados encontrados:', rawData)
       const data = rawData as DailyQueueMetrics
 
       // Calcular média de rating se necessário

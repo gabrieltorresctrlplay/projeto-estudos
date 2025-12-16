@@ -21,11 +21,21 @@ import {
 } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
 import { BarChart3, Loader2, MonitorPlay, Plus, Settings, Trash2, Tv, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 export default function QueuePage() {
+  // Main Queue Dashboard Component
   const navigate = useNavigate()
   const { currentOrganization, currentMemberRole } = useOrganizationContext()
 
@@ -37,6 +47,12 @@ export default function QueuePage() {
   const [isCreating, setIsCreating] = useState(false)
   const [newQueueName, setNewQueueName] = useState('')
   const [selectedQueueId, setSelectedQueueId] = useState<string | null>(null)
+
+  // Join Dialog States
+  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState(false)
+  const [stationName, setStationName] = useState('')
+  const [isJoining, setIsJoining] = useState(false)
+  const { user } = useOrganizationContext()
 
   useEffect(() => {
     if (!currentOrganization?.id) return
@@ -135,6 +151,40 @@ export default function QueuePage() {
     }
   }
 
+  const handleOpenJoinDialog = (queueId: string) => {
+    setSelectedQueueId(queueId)
+    setIsJoinDialogOpen(true)
+  }
+
+  const handleJoinQueue = async () => {
+    if (!selectedQueueId || !currentOrganization?.id || !user?.uid || !stationName) return
+
+    setIsJoining(true)
+
+    try {
+      const { counterId, error } = await counterService.enterQueueAsAttendant(
+        selectedQueueId,
+        currentOrganization.id,
+        user.uid,
+        user.displayName || 'Atendente',
+        stationName, // Agora vem do Select (ex: "Mesa 01")
+      )
+
+      if (error) {
+        toast.error('Erro ao entrar', { description: error.message })
+      } else if (counterId) {
+        toast.success(`Entrando em ${stationName}`)
+        navigate(`/queue/${selectedQueueId}/counter/${counterId}`)
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('Erro ao processar entrada')
+    } finally {
+      setIsJoining(false)
+      setIsJoinDialogOpen(false)
+    }
+  }
+
   if (isLoading) {
     return <QueueSkeleton />
   }
@@ -226,40 +276,29 @@ export default function QueuePage() {
                     </CardContent>
                   </Card>
 
-                  {/* Guichês */}
+                  {/* Guichês / Atendimento */}
                   <Card
-                    className="border-border cursor-pointer"
+                    className="border-border hover:border-primary/50 cursor-pointer transition-colors"
                     onClick={() => {
-                      const isAdmin = currentMemberRole === 'owner' || currentMemberRole === 'admin'
-                      if (isAdmin) {
-                        // Admin/Owner vai para gerenciamento de guichês
-                        navigate(`/queue/${queue.id}/counters`)
-                      } else {
-                        // Funcionário vai para meus guichês
-                        navigate('/my-counters')
-                      }
+                      handleOpenJoinDialog(queue.id)
                     }}
                   >
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-base">Guichês</CardTitle>
+                        <CardTitle className="text-base">Atender Fila</CardTitle>
                         <Users className="text-primary h-5 w-5" />
                       </div>
                       <CardDescription className="text-xs">
-                        {currentMemberRole === 'owner' || currentMemberRole === 'admin'
-                          ? 'Gerencie e atribua guichês aos funcionários'
-                          : 'Acesse seus guichês atribuídos'}
+                        Entre na fila para começar a chamar senhas
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Button
                         className="w-full transition-transform active:scale-95"
-                        variant="outline"
+                        variant="default" // Force default (primary) button
                         size="sm"
                       >
-                        {currentMemberRole === 'owner' || currentMemberRole === 'admin'
-                          ? 'Gerenciar'
-                          : 'Meus Guichês'}
+                        Começar a Atender
                       </Button>
                     </CardContent>
                   </Card>
@@ -460,6 +499,67 @@ export default function QueuePage() {
                 </Button>
               </CardContent>
             </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Dialog de Join (Atendimento Dinâmico) */}
+      <Dialog
+        open={isJoinDialogOpen}
+        onOpenChange={setIsJoinDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Iniciar Atendimento</DialogTitle>
+            <DialogDescription>Como você quer ser identificado no monitor?</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="stationName">Selecione sua Posição</Label>
+              <Select
+                value={stationName}
+                onValueChange={setStationName}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione Mesa ou Guichê" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Mesas</SelectLabel>
+                    {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+                      <SelectItem
+                        key={`mesa-${num}`}
+                        value={`Mesa ${String(num).padStart(2, '0')}`}
+                      >
+                        Mesa {String(num).padStart(2, '0')}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Guichês</SelectLabel>
+                    {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+                      <SelectItem
+                        key={`guiche-${num}`}
+                        value={`Guichê ${String(num).padStart(2, '0')}`}
+                      >
+                        Guichê {String(num).padStart(2, '0')}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              className="w-full"
+              onClick={handleJoinQueue}
+              disabled={isJoining || !stationName.trim()}
+            >
+              {isJoining ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <MonitorPlay className="mr-2 h-4 w-4" />
+              )}
+              Entrar e Atender
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

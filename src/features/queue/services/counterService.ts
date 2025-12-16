@@ -7,6 +7,7 @@ import {
   getDoc,
   getDocs,
   query,
+  runTransaction,
   serverTimestamp,
   updateDoc,
   where,
@@ -262,6 +263,82 @@ export const counterService = {
       return { error: null }
     } catch (error) {
       return { error: handleError(error, 'cancelScheduledPause') }
+    }
+  },
+
+  /**
+   * Entrar na fila como atendente (Atômico)
+   * Encontra ou cria um Counter e atribui ao usuário
+   */
+  async enterQueueAsAttendant(
+    queueId: string,
+    organizationId: string,
+    userId: string,
+    userName: string,
+    stationName: string,
+  ): Promise<{ counterId: string | null; error: Error | null }> {
+    try {
+      // GARANTIA DE ATOMICIDADE:
+      // Usamos o NOME normalizado (slug) como ID do documento.
+      // Isso permite usar transaction.get() para garantir unicidade absoluta.
+
+      const slug = stationName.toLowerCase().replace(/[^a-z0-9]/g, '-')
+      const deterministicId = slug
+
+      const counterId = await runTransaction(db, async (transaction) => {
+        const counterRef = doc(db, 'queues', queueId, 'counters', deterministicId)
+        const counterDoc = await transaction.get(counterRef)
+
+        if (counterDoc.exists()) {
+          // Se existe, verifica se está livre ou se é do próprio usuário
+          const data = counterDoc.data() as Counter
+
+          // Permitir roubar a mesa se estiver "closed"? O usuário pediu "conflito".
+          // Vamos simplificar: Se existe e está assigned para OUTRO, erro.
+          if (data.assignedUserId && data.assignedUserId !== userId) {
+            throw new Error(`A ${stationName} já está sendo usada por ${data.assignedUserName}`)
+          }
+
+          // Atribuir
+          transaction.update(counterRef, {
+            assignedUserId: userId,
+            assignedUserName: userName,
+            name: stationName, // Garante casing correto
+            updatedAt: serverTimestamp(),
+          })
+
+          return deterministicId
+        } else {
+          // Criar novo
+          // Precisamos do "number". Ler a coleção inteira é inviável na transaction.
+          // Vamos usar um numero aleatório ou timestamp para ordenação se não tivermos contador?
+          // Ou aceitar que a ordem numero vai ser falha.
+          // O user pediu ordem "01 02..". Podemos extrair o numero do nome "Mesa 01" -> 1
+
+          const match = stationName.match(/\d+/)
+          const number = match ? parseInt(match[0], 10) : 999
+
+          transaction.set(counterRef, {
+            queueId,
+            organizationId,
+            name: stationName,
+            number,
+            status: 'closed',
+            categories: [],
+            ticketsServedToday: 0,
+            assignedUserId: userId,
+            assignedUserName: userName,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          })
+
+          return deterministicId
+        }
+      })
+
+      return { counterId, error: null }
+    } catch (error) {
+      return { counterId: null, error: handleError(error, 'enterQueueAsAttendant') }
     }
   },
 }

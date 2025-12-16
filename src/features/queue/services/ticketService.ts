@@ -22,6 +22,7 @@ import type {
   Ticket,
   TicketStatus,
 } from '../types/queue'
+import { metricsService } from './metricsService'
 
 // ============================================
 // Ticket Service
@@ -90,6 +91,11 @@ export const ticketService = {
         lastResetDate: today,
         updatedAt: serverTimestamp(),
       })
+
+      // 6. Gravar métricas (Fire and forget)
+      metricsService
+        .recordTicketEmitted(queueId, queue.organizationId, categoryId)
+        .catch(console.error)
 
       return {
         ticket: { id: ticketRef.id, ...ticketData, createdAt: Timestamp.now() } as Ticket,
@@ -260,6 +266,9 @@ export const ticketService = {
         })
       }
 
+      // 4. Gravar métricas
+      metricsService.recordTicketCompletion(queueId, ticketData, status).catch(console.error)
+
       return { error: null }
     } catch (error) {
       return { error: handleError(error, 'finishTicket') }
@@ -281,6 +290,10 @@ export const ticketService = {
         feedbackComment: comment || null,
         feedbackAt: serverTimestamp(),
       })
+
+      // Gravar métricas
+      metricsService.recordFeedback(queueId, rating).catch(console.error)
+
       return { error: null }
     } catch (error) {
       return { error: handleError(error, 'saveFeedback') }
