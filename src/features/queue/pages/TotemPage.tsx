@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useOrganizationContext } from '@/features/organization/context/OrganizationContext'
-import { queueService } from '@/features/queue/services/queueService'
+import {
+  queueManagementService,
+  realtimeService,
+  ticketService,
+} from '@/features/queue/services/queueService'
 import type { Queue, ServiceCategory, Ticket as TicketType } from '@/features/queue/types/queue'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent } from '@/shared/components/ui/card'
@@ -28,8 +32,8 @@ export default function TotemPage() {
     const loadQueueData = async () => {
       setIsLoading(true)
       const [queueResult, categoriesResult] = await Promise.all([
-        queueService.getQueue(queueId),
-        queueService.getCategories(queueId),
+        queueManagementService.getQueue(queueId),
+        queueManagementService.getCategories(queueId),
       ])
 
       if (queueResult.data) setQueue(queueResult.data)
@@ -40,7 +44,7 @@ export default function TotemPage() {
     loadQueueData()
 
     // Subscribe para contar fila
-    const unsubscribe = queueService.subscribeToWaitingQueue(queueId, (tickets) => {
+    const unsubscribe = realtimeService.subscribeToWaitingQueue(queueId, (tickets) => {
       setWaitingCount(tickets.length)
     })
 
@@ -51,7 +55,7 @@ export default function TotemPage() {
     if (!queueId) return
 
     setIsEmitting(true)
-    const { ticket, error } = await queueService.emitTicket({
+    const { ticket, error } = await ticketService.emitTicket({
       queueId,
       categoryId,
       isPriority,

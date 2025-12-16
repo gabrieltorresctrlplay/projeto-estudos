@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { queueService } from '@/features/queue/services/queueService'
+import {
+  queueManagementService,
+  realtimeService,
+} from '@/features/queue/services/queueService'
 import type { Queue, Ticket } from '@/features/queue/types/queue'
 import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
@@ -20,7 +23,7 @@ export default function MonitorPage() {
     if (!queueId) return
 
     const loadQueue = async () => {
-      const { data } = await queueService.getQueue(queueId)
+      const { data } = await queueManagementService.getQueue(queueId)
       if (data) setQueue(data)
       setIsLoading(false)
     }
@@ -28,7 +31,7 @@ export default function MonitorPage() {
     loadQueue()
 
     // Subscribe para tickets chamados
-    const unsubscribe = queueService.subscribeToCalledTickets(
+    const unsubscribe = realtimeService.subscribeToCalledTickets(
       queueId,
       5, // Mostrar últimas 5 chamadas
       (tickets) => {

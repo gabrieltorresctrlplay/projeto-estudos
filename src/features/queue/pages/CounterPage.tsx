@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useOrganizationContext } from '@/features/organization/context/OrganizationContext'
-import { queueService } from '@/features/queue/services/queueService'
+import {
+  counterService,
+  queueManagementService,
+  realtimeService,
+  ticketService,
+} from '@/features/queue/services/queueService'
 import type { Counter, Queue, Ticket } from '@/features/queue/types/queue'
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
@@ -37,8 +42,8 @@ export default function CounterPage() {
 
     const loadData = async () => {
       const [queueRes, countersRes] = await Promise.all([
-        queueService.getQueue(queueId),
-        queueService.getCounters(queueId),
+        queueManagementService.getQueue(queueId),
+        counterService.getCounters(queueId),
       ])
 
       if (queueRes.data) setQueue(queueRes.data)
@@ -52,12 +57,12 @@ export default function CounterPage() {
     loadData()
 
     // Subscribe para fila de espera
-    const unsubWaiting = queueService.subscribeToWaitingQueue(queueId, (tickets) => {
+    const unsubWaiting = realtimeService.subscribeToWaitingQueue(queueId, (tickets) => {
       setWaitingTickets(tickets)
     })
 
     // Subscribe para guichês (para ver ticket atual)
-    const unsubCounters = queueService.subscribeToCounters(queueId, (counters) => {
+    const unsubCounters = realtimeService.subscribeToCounters(queueId, (counters) => {
       const myCounter = counters.find((c) => c.id === counterId)
       if (myCounter) setCounter(myCounter)
     })
@@ -75,7 +80,7 @@ export default function CounterPage() {
       return
     }
 
-    const unsubscribe = queueService.subscribeToCalledTickets(queueId, 10, (tickets) => {
+    const unsubscribe = realtimeService.subscribeToCalledTickets(queueId, 10, (tickets) => {
       const current = tickets.find((t) => t.id === counter.currentTicketId)
       setCurrentTicket(current || null)
     })
@@ -86,7 +91,7 @@ export default function CounterPage() {
   const handleOpenCounter = async () => {
     if (!queueId || !counterId || !user) return
     setIsProcessing(true)
-    const { error } = await queueService.updateCounterStatus(
+    const { error } = await counterService.updateCounterStatus(
       queueId,
       counterId,
       'open',
@@ -100,7 +105,7 @@ export default function CounterPage() {
   const handlePauseCounter = async () => {
     if (!queueId || !counterId) return
     setIsProcessing(true)
-    const { error } = await queueService.updateCounterStatus(queueId, counterId, 'paused')
+    const { error } = await counterService.updateCounterStatus(queueId, counterId, 'paused')
     if (error) toast.error('Erro ao pausar guichê', { description: error.message })
     setIsProcessing(false)
   }
@@ -108,7 +113,7 @@ export default function CounterPage() {
   const handleCallNext = async () => {
     if (!queueId || !counterId) return
     setIsProcessing(true)
-    const { ticket, error } = await queueService.callNextTicket(queueId, { counterId })
+    const { ticket, error } = await ticketService.callNextTicket(queueId, { counterId })
     if (error) {
       toast.error('Erro ao chamar', { description: error.message })
     } else if (ticket) {
@@ -120,7 +125,7 @@ export default function CounterPage() {
   const handleRecall = async () => {
     if (!queueId || !currentTicket) return
     setIsProcessing(true)
-    const { error } = await queueService.recallTicket(queueId, currentTicket.id)
+    const { error } = await ticketService.recallTicket(queueId, currentTicket.id)
     if (error) toast.error('Erro ao rechamar')
     else toast.success(`Rechamando ${currentTicket.fullCode}`)
     setIsProcessing(false)
@@ -129,7 +134,7 @@ export default function CounterPage() {
   const handleStartServing = async () => {
     if (!queueId || !currentTicket || !user) return
     setIsProcessing(true)
-    const { error } = await queueService.startServing(queueId, currentTicket.id, user.uid)
+    const { error } = await ticketService.startServing(queueId, currentTicket.id, user.uid)
     if (error) toast.error('Erro ao iniciar atendimento')
     setIsProcessing(false)
   }
@@ -137,7 +142,12 @@ export default function CounterPage() {
   const handleFinish = async (status: 'finished' | 'no_show' | 'cancelled') => {
     if (!queueId || !counterId || !currentTicket) return
     setIsProcessing(true)
-    const { error } = await queueService.finishTicket(queueId, counterId, currentTicket.id, status)
+    const { error } = await ticketService.finishTicket(
+      queueId,
+      counterId,
+      currentTicket.id,
+      status,
+    )
     if (error) toast.error('Erro ao finalizar')
     else toast.success('Atendimento finalizado')
     setIsProcessing(false)

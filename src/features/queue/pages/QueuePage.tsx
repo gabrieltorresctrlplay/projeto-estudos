@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useOrganizationContext } from '@/features/organization/context/OrganizationContext'
-import { queueService } from '@/features/queue/services/queueService'
+import {
+  counterService,
+  queueManagementService,
+} from '@/features/queue/services/queueService'
 import type { Queue, ServiceCategory } from '@/features/queue/types/queue'
 import { QueueSkeleton } from '@/shared/components/feedback/PageSkeleton'
 import { Badge } from '@/shared/components/ui/badge'
@@ -43,7 +46,7 @@ export default function QueuePage() {
 
     const loadQueues = async () => {
       setIsLoading(true)
-      const { data } = await queueService.getOrganizationQueues(currentOrganization.id)
+      const { data } = await queueManagementService.getOrganizationQueues(currentOrganization.id)
       if (data) {
         setQueues(data)
         // Se há filas, buscar guichês da primeira
@@ -82,7 +85,7 @@ export default function QueuePage() {
       },
     ]
 
-    const { queueId, error } = await queueService.createQueue(
+    const { queueId, error } = await queueManagementService.createQueue(
       currentOrganization.id,
       newQueueName,
       defaultCategories as ServiceCategory[],
@@ -97,11 +100,11 @@ export default function QueuePage() {
 
       // Criar guichês padrão
       for (let i = 1; i <= 3; i++) {
-        await queueService.createCounter(queueId, currentOrganization.id, `Guichê ${i}`, i)
+        await counterService.createCounter(queueId, currentOrganization.id, `Guichê ${i}`, i)
       }
 
       // Recarregar filas
-      const { data } = await queueService.getOrganizationQueues(currentOrganization.id)
+      const { data } = await queueManagementService.getOrganizationQueues(currentOrganization.id)
       if (data) setQueues(data)
     }
 
@@ -208,7 +211,7 @@ export default function QueuePage() {
                   <Card
                     className="border-border cursor-pointer"
                     onClick={async () => {
-                      const { data } = await queueService.getCounters(queue.id)
+                      const { data } = await counterService.getCounters(queue.id)
                       if (data && data.length > 0) {
                         navigate(`/queue/${queue.id}/counter/${data[0].id}`)
                       } else {
