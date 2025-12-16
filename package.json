@@ -12,6 +12,8 @@
     "emulators": "firebase emulators:start --project demo-projeto-estudos --import=./emulator-data --export-on-exit=./emulator-data",
     "ci": "firebase emulators:start --project demo-projeto-estudos --import=./emulator-data --export-on-exit",
     "format": "prettier --write .",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "cli": "start \"\" \"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -WorkingDirectory ."
   },
   "dependencies": {

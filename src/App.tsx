@@ -1,27 +1,26 @@
 import { lazy, Suspense } from 'react'
+import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute'
+import { PublicOnlyRoute } from '@/features/auth/components/PublicOnlyRoute'
+import { DashboardLayout } from '@/features/dashboard/components/DashboardLayout'
+import { OrganizationProvider } from '@/features/organization/context/OrganizationContext'
+import { MainLayout } from '@/shared/components/layout/MainLayout'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Toaster } from 'sonner' // Sonner Toaster
 
-import { ProtectedRoute } from './components/auth/ProtectedRoute'
-import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute'
-import { DashboardLayout } from './components/layout/dashboard/DashboardLayout'
-import { MainLayout } from './components/layout/MainLayout'
-import { OrganizationProvider } from './contexts/OrganizationContext'
-
 // Lazy load pages for better performance
-const Home = lazy(() => import('./pages/Home'))
-const Auth = lazy(() => import('./pages/auth/Auth'))
-const Onboarding = lazy(() => import('./pages/Onboarding'))
-const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
-const TeamMembers = lazy(() => import('./pages/dashboard/TeamMembers'))
-const Queue = lazy(() => import('./pages/dashboard/Queue'))
-const Profile = lazy(() => import('./pages/dashboard/Profile'))
-const UnderConstruction = lazy(() => import('./pages/dashboard/UnderConstruction'))
-const ChatLabPage = lazy(() => import('./pages/dashboard/chat-lab/ChatLabPage'))
+const Home = lazy(() => import('@/features/home/pages/HomePage'))
+const Auth = lazy(() => import('@/features/auth/pages/AuthPage'))
+const Onboarding = lazy(() => import('@/features/organization/pages/OnboardingPage'))
+const Dashboard = lazy(() => import('@/features/dashboard/pages/DashboardPage'))
+const TeamMembers = lazy(() => import('@/features/team/pages/TeamMembersPage'))
+const Queue = lazy(() => import('@/features/queue/pages/QueuePage'))
+const Profile = lazy(() => import('@/features/dashboard/pages/ProfilePage'))
+const UnderConstruction = lazy(() => import('@/shared/components/feedback/UnderConstruction'))
+const ChatLabPage = lazy(() => import('@/features/chat-lab/pages/ChatLabPage'))
 // Queue System Pages
-const TotemPage = lazy(() => import('./pages/queue/TotemPage'))
-const MonitorPage = lazy(() => import('./pages/queue/MonitorPage'))
-const CounterPage = lazy(() => import('./pages/queue/CounterPage'))
+const TotemPage = lazy(() => import('@/features/queue/pages/TotemPage'))
+const MonitorPage = lazy(() => import('@/features/queue/pages/MonitorPage'))
+const CounterPage = lazy(() => import('@/features/queue/pages/CounterPage'))
 
 function App() {
   return (
