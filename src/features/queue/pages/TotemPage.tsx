@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { useOrganizationContext } from '@/features/organization/context/OrganizationContext'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   queueManagementService,
   realtimeService,
@@ -7,16 +6,24 @@ import {
 } from '@/features/queue/services/queueService'
 import type { Queue, ServiceCategory, Ticket as TicketType } from '@/features/queue/types/queue'
 import { Button } from '@/shared/components/ui/button'
-import { Card } from '@/shared/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/shared/components/ui/card'
+import { FeatureIcon } from '@/shared/components/ui/feature-icon'
 import { AnimatePresence, motion } from 'framer-motion'
-import { AlertCircle, ArrowLeft, Loader2, Printer, Ticket } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Hand, Loader2, Ticket, UserCheck, Users } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
+
+const IDLE_TIMEOUT_MS = 15000 // 15 segundos de inatividade volta para tela inicial
 
 export default function TotemPage() {
   const { queueId } = useParams<{ queueId: string }>()
   const navigate = useNavigate()
-  const { currentOrganization } = useOrganizationContext()
 
   const [queue, setQueue] = useState<Queue | null>(null)
   const [categories, setCategories] = useState<ServiceCategory[]>([])
@@ -24,6 +31,35 @@ export default function TotemPage() {
   const [isEmitting, setIsEmitting] = useState(false)
   const [emittedTicket, setEmittedTicket] = useState<TicketType | null>(null)
   const [waitingCount, setWaitingCount] = useState(0)
+
+  // Estado da tela: 'welcome' ou 'selection'
+  const [screen, setScreen] = useState<'welcome' | 'selection'>('welcome')
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Pegar a categoria "Atendimento Geral" (ou a primeira)
+  const geralCategory = categories.find((c) => c.prefix === 'A') || categories[0]
+
+  // Reset do timer de inatividade
+  const resetIdleTimer = useCallback(() => {
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current)
+    }
+    if (screen === 'selection' && !emittedTicket) {
+      idleTimerRef.current = setTimeout(() => {
+        setScreen('welcome')
+      }, IDLE_TIMEOUT_MS)
+    }
+  }, [screen, emittedTicket])
+
+  // Ao mudar de tela ou fechar modal, resetar timer
+  useEffect(() => {
+    resetIdleTimer()
+    return () => {
+      if (idleTimerRef.current) {
+        clearTimeout(idleTimerRef.current)
+      }
+    }
+  }, [screen, emittedTicket, resetIdleTimer])
 
   useEffect(() => {
     if (!queueId) return
@@ -42,7 +78,6 @@ export default function TotemPage() {
 
     loadQueueData()
 
-    // Subscribe para contar fila
     const unsubscribe = realtimeService.subscribeToWaitingQueue(queueId, (tickets) => {
       setWaitingCount(tickets.length)
     })
@@ -50,13 +85,13 @@ export default function TotemPage() {
     return () => unsubscribe()
   }, [queueId])
 
-  const handleEmitTicket = async (categoryId: string, isPriority = false) => {
-    if (!queueId) return
+  const handleEmitTicket = async (isPriority = false) => {
+    if (!queueId || !geralCategory) return
 
     setIsEmitting(true)
     const { ticket, error } = await ticketService.emitTicket({
       queueId,
-      categoryId,
+      categoryId: geralCategory.id,
       isPriority,
     })
 
@@ -68,10 +103,17 @@ export default function TotemPage() {
 
     if (ticket) {
       setEmittedTicket(ticket)
-      // Limpar após 5 segundos para agilizar
-      setTimeout(() => setEmittedTicket(null), 5000)
+      // Após mostrar o ticket, voltar para welcome
+      setTimeout(() => {
+        setEmittedTicket(null)
+        setScreen('welcome')
+      }, 5000)
     }
     setIsEmitting(false)
+  }
+
+  const handleStartSelection = () => {
+    setScreen('selection')
   }
 
   if (isLoading) {
@@ -101,173 +143,231 @@ export default function TotemPage() {
   }
 
   return (
-    <div className="bg-background text-foreground relative flex min-h-screen flex-col overflow-hidden selection:bg-primary/20">
-      {/* Background Decor */}
-      <div className="bg-primary/5 pointer-events-none absolute -top-40 right-0 h-[500px] w-[500px] rounded-full blur-[120px]" />
-      <div className="bg-secondary/20 pointer-events-none absolute bottom-0 left-0 h-[500px] w-[500px] rounded-full blur-[120px]" />
-
-      {/* Header - Compact to save space for buttons */}
-      <header className="relative z-10 px-8 pt-8 pb-4 text-center">
-        <h1 className="text-foreground text-4xl font-bold tracking-tight md:text-5xl">
-          {queue.name}
-        </h1>
-        <p className="text-muted-foreground mt-2 text-xl">
-          Toque em uma opção para retirar sua senha
-        </p>
-      </header>
-
-      {/* Main Content - Grid of Categories */}
-      <main className="relative z-10 flex flex-1 flex-col items-center justify-center p-8">
-        <div className="grid w-full max-w-6xl gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category) => (
+    <div className="bg-background text-foreground relative flex min-h-screen flex-col overflow-hidden">
+      <AnimatePresence mode="wait">
+        {/* Tela 1: Boas-vindas */}
+        {screen === 'welcome' && (
+          <motion.div
+            key="welcome"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex min-h-screen flex-col items-center justify-center p-8"
+            onClick={handleStartSelection}
+          >
             <motion.div
-              key={category.id}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              className="h-full"
+              className="flex flex-col items-center text-center"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
             >
-              <Card
-                className="group border-border/50 hover:border-primary/50 relative flex h-full cursor-pointer flex-col overflow-hidden border-2 shadow-sm transition-colors hover:shadow-xl"
-                onClick={() => handleEmitTicket(category.id)}
+              <FeatureIcon
+                icon={Hand}
+                className="mb-8 h-40 w-40"
+                iconClassName="h-20 w-20"
+              />
+
+              <h1 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-5xl font-bold tracking-tight text-transparent md:text-7xl">
+                Bem-vindo!
+              </h1>
+
+              <p className="text-muted-foreground mt-6 text-2xl md:text-3xl">
+                Toque na tela para retirar sua senha
+              </p>
+
+              <motion.div
+                className="mt-12"
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               >
-                {/* Category Color Strip */}
-                <div
-                  className="absolute top-0 left-0 h-2 w-full"
-                  style={{ backgroundColor: category.color }}
-                />
-
-                <div className="flex flex-1 flex-col items-center justify-center p-10 text-center">
-                  <div
-                    className="mb-6 flex h-24 w-24 items-center justify-center rounded-full shadow-inner"
-                    style={{ backgroundColor: `${category.color}15` }}
-                  >
-                    <Printer
-                      className="h-10 w-10"
-                      style={{ color: category.color }}
-                    />
-                  </div>
-
-                  <h3 className="text-3xl font-bold tracking-tight">{category.name}</h3>
-
-                  {category.estimatedTime && (
-                     <p className="text-muted-foreground mt-3 text-lg font-medium">
-                       ~{category.estimatedTime} min de espera
-                     </p>
-                  )}
-                </div>
-
-                {/* Footer Action */}
-                <div className="bg-muted/30 p-4">
-                  <Button
-                    className="w-full text-lg h-14"
-                    size="lg"
-                    style={{
-                       backgroundColor: category.color,
-                       color: '#fff' // Ensure contrast
-                    }}
-                    disabled={isEmitting}
-                  >
-                    {isEmitting ? <Loader2 className="h-6 w-6 animate-spin" /> : 'Retirar Senha'}
-                  </Button>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Priority / Accessibility Options - Bottom Area */}
-        <div className="mt-12 w-full max-w-6xl">
-          <div className="border-border/50 bg-card/50 rounded-2xl border p-6 backdrop-blur-sm">
-            <h4 className="text-muted-foreground mb-6 text-center text-lg font-medium uppercase tracking-widest">
-              Atendimento Preferencial
-            </h4>
-            <div className="flex flex-wrap justify-center gap-4">
-              {categories.map((category) => (
                 <Button
-                  key={`pref-${category.id}`}
-                  variant="outline"
                   size="lg"
-                  className="border-chart-4/50 text-chart-4 hover:bg-chart-4/10 hover:border-chart-4 h-16 px-8 text-xl font-semibold transition-all"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleEmitTicket(category.id, true)
-                  }}
-                  disabled={isEmitting}
+                  className="h-20 px-16 text-2xl font-bold"
                 >
-                  <Ticket className="mr-3 h-6 w-6" />
-                  {category.name} (Preferencial)
+                  Iniciar
                 </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </main>
+              </motion.div>
 
-      {/* Footer Info */}
-      <footer className="p-6 text-center">
-        <p className="text-muted-foreground text-lg">
-          {currentOrganization?.name} • <span className="text-foreground font-bold">{waitingCount}</span> pessoas aguardando
-        </p>
-      </footer>
+              <p className="text-muted-foreground mt-16 text-lg">
+                <span className="text-foreground font-bold">{waitingCount}</span> pessoas na fila
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
 
-      {/* Ticket Success Modal - Fullscreen Overlay */}
+        {/* Tela 2: Seleção de tipo de atendimento */}
+        {screen === 'selection' && (
+          <motion.div
+            key="selection"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex min-h-screen flex-col"
+          >
+            {/* Header */}
+            <header className="relative z-10 px-8 pt-12 pb-6 text-center">
+              <h1 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-4xl font-bold tracking-tight text-transparent md:text-5xl">
+                {queue.name}
+              </h1>
+              <p className="text-muted-foreground mt-3 text-xl">Escolha o tipo de atendimento</p>
+            </header>
+
+            {/* Main Content - 2 Big Buttons */}
+            <main className="relative z-10 flex flex-1 items-center justify-center px-8 py-4">
+              <div className="grid h-[65vh] w-full max-w-6xl gap-8 md:grid-cols-2">
+                {/* Atendimento Geral */}
+                <motion.div
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="h-full"
+                >
+                  <Card
+                    className="group hover:border-primary/50 flex h-full cursor-pointer flex-col overflow-hidden shadow-lg transition-all hover:shadow-2xl"
+                    onClick={() => handleEmitTicket(false)}
+                  >
+                    <CardHeader className="flex flex-1 flex-col items-center justify-center text-center">
+                      <div className="mb-8 flex justify-center">
+                        <FeatureIcon
+                          icon={Users}
+                          className="h-32 w-32"
+                          iconClassName="h-16 w-16"
+                        />
+                      </div>
+                      <CardTitle className="text-5xl font-bold">Atendimento Geral</CardTitle>
+                      <CardDescription className="mt-4 text-2xl">
+                        Senha comum para todos os serviços
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-8">
+                      <Button
+                        className="h-20 w-full text-2xl font-bold active:scale-95"
+                        size="lg"
+                        disabled={isEmitting}
+                      >
+                        {isEmitting ? (
+                          <Loader2 className="h-8 w-8 animate-spin" />
+                        ) : (
+                          'Retirar Senha'
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+
+                {/* Atendimento Preferencial */}
+                <motion.div
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="h-full"
+                >
+                  <Card
+                    className="group hover:border-primary/50 flex h-full cursor-pointer flex-col overflow-hidden shadow-lg transition-all hover:shadow-2xl"
+                    onClick={() => handleEmitTicket(true)}
+                  >
+                    <CardHeader className="flex flex-1 flex-col items-center justify-center text-center">
+                      <div className="mb-8 flex justify-center">
+                        <FeatureIcon
+                          icon={UserCheck}
+                          className="h-32 w-32"
+                          iconClassName="h-16 w-16"
+                        />
+                      </div>
+                      <CardTitle className="text-5xl font-bold">Atendimento Preferencial</CardTitle>
+                      <CardDescription className="mt-4 text-2xl">
+                        Idosos, gestantes, PcD e lactantes
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-8">
+                      <Button
+                        variant="secondary"
+                        className="h-20 w-full text-2xl font-bold active:scale-95"
+                        size="lg"
+                        disabled={isEmitting}
+                      >
+                        {isEmitting ? (
+                          <Loader2 className="h-8 w-8 animate-spin" />
+                        ) : (
+                          'Retirar Senha'
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </div>
+            </main>
+
+            {/* Footer Info */}
+            <footer className="p-6 text-center">
+              <p className="text-muted-foreground text-lg">
+                <span className="text-foreground font-bold">{waitingCount}</span> pessoas aguardando
+              </p>
+            </footer>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Ticket Success Modal */}
       <AnimatePresence>
         {emittedTicket && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
-            onClick={() => setEmittedTicket(null)}
+            className="bg-background/95 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md"
+            onClick={() => {
+              setEmittedTicket(null)
+              setScreen('welcome')
+            }}
           >
             <motion.div
               initial={{ scale: 0.8, y: 50 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-card w-full max-w-lg overflow-hidden rounded-3xl shadow-2xl"
+              className="w-full max-w-lg"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header Strip */}
-              <div
-                className="h-4 w-full"
-                style={{ backgroundColor: emittedTicket.categoryColor }}
-              />
+              <Card className="overflow-hidden shadow-2xl">
+                <CardHeader className="text-center">
+                  <div className="mb-4 flex justify-center">
+                    <FeatureIcon
+                      icon={Ticket}
+                      className="h-20 w-20"
+                    />
+                  </div>
+                  <CardTitle className="text-3xl">Senha Retirada!</CardTitle>
+                  <CardDescription className="text-xl">
+                    {emittedTicket.isPriority ? 'Atendimento Preferencial' : 'Atendimento Geral'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6 text-center">
+                  <div className="bg-muted rounded-2xl px-8 py-6">
+                    <span className="text-primary block text-8xl font-black tracking-tighter">
+                      {emittedTicket.fullCode}
+                    </span>
+                  </div>
 
-              <div className="flex flex-col items-center p-12 text-center">
-                <div className="mb-6 rounded-full bg-green-100 p-4 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                   <Ticket className="h-12 w-12" />
-                </div>
+                  {emittedTicket.isPriority && (
+                    <div className="bg-secondary text-secondary-foreground inline-block rounded-full px-6 py-2 text-lg font-bold">
+                      Prioridade
+                    </div>
+                  )}
 
-                <h2 className="text-foreground text-3xl font-bold">Senha Retirada!</h2>
-                <p className="text-muted-foreground mt-2 text-xl">{emittedTicket.categoryName}</p>
+                  <p className="text-muted-foreground text-lg">
+                    Por favor, aguarde ser chamado no painel.
+                  </p>
 
-                <div className="my-8 rounded-xl bg-slate-100 px-12 py-8 dark:bg-slate-800">
-                  <span
-                    className="block text-8xl font-black tracking-tighter"
-                    style={{ color: emittedTicket.categoryColor }}
+                  <Button
+                    size="lg"
+                    className="h-14 w-full text-xl"
+                    onClick={() => {
+                      setEmittedTicket(null)
+                      setScreen('welcome')
+                    }}
                   >
-                    {emittedTicket.fullCode}
-                  </span>
-                </div>
-
-                {emittedTicket.isPriority && (
-                   <div className="mb-6 rounded-full bg-yellow-100 px-6 py-2 text-xl font-bold text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
-                     Prioridade
-                   </div>
-                )}
-
-                <p className="text-muted-foreground mb-8 text-lg">
-                  Por favor, aguarde ser chamado no painel.
-                </p>
-
-                <Button
-                  size="lg"
-                  className="h-16 w-full text-xl"
-                  onClick={() => setEmittedTicket(null)}
-                >
-                  Fechar
-                </Button>
-              </div>
+                    Fechar
+                  </Button>
+                </CardContent>
+              </Card>
             </motion.div>
           </motion.div>
         )}

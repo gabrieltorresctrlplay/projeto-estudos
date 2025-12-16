@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  queueManagementService,
-  realtimeService,
-} from '@/features/queue/services/queueService'
+import { queueManagementService, realtimeService } from '@/features/queue/services/queueService'
 import type { Queue, Ticket } from '@/features/queue/types/queue'
 import { Button } from '@/shared/components/ui/button'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -87,13 +84,13 @@ export default function MonitorPage() {
 
       <main className="flex flex-1 flex-col p-8 md:p-12 lg:flex-row">
         {/* Left Side - Current Ticket (66%) */}
-        <section className="bg-card relative flex flex-[2] flex-col items-center justify-center rounded-[3rem] p-12 shadow-2xl lg:mr-8">
-           {/* Header Inside Card */}
-           <div className="absolute top-12 left-0 w-full text-center">
+        <section className="bg-card relative flex flex-2 flex-col items-center justify-center rounded-[3rem] p-12 shadow-2xl lg:mr-8">
+          {/* Header Inside Card */}
+          <div className="absolute top-12 left-0 w-full text-center">
             <h1 className="text-muted-foreground text-3xl font-light tracking-widest uppercase">
-               {queue?.name || 'Fila'}
+              {queue?.name || 'Fila'}
             </h1>
-           </div>
+          </div>
 
           <AnimatePresence mode="wait">
             {currentTicket ? (
@@ -128,18 +125,20 @@ export default function MonitorPage() {
 
                 {/* Counter Info */}
                 <div className="mt-12 flex flex-col items-center">
-                    <span className="text-muted-foreground text-4xl font-light">Dirija-se ao</span>
-                    <span className="text-foreground mt-2 text-6xl font-bold">{currentTicket.counterName}</span>
+                  <span className="text-muted-foreground text-4xl font-light">Dirija-se ao</span>
+                  <span className="text-foreground mt-2 text-6xl font-bold">
+                    {currentTicket.counterName}
+                  </span>
                 </div>
 
                 {currentTicket.isPriority && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-chart-4 text-primary-foreground mt-8 rounded-full px-8 py-3 text-2xl font-bold shadow-lg"
-                    >
-                        Prioridade
-                    </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-secondary text-secondary-foreground border-primary mt-8 rounded-full border-2 px-8 py-3 text-2xl font-bold shadow-lg"
+                  >
+                    Prioridade
+                  </motion.div>
                 )}
               </motion.div>
             ) : (
@@ -149,7 +148,9 @@ export default function MonitorPage() {
                 className="flex flex-col items-center justify-center text-center opacity-50"
               >
                 <div className="text-9xl">...</div>
-                <div className="text-muted-foreground mt-8 text-4xl font-light">Aguardando chamada</div>
+                <div className="text-muted-foreground mt-8 text-4xl font-light">
+                  Aguardando chamada
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -157,48 +158,52 @@ export default function MonitorPage() {
 
         {/* Right Side - History (33%) */}
         <aside className="bg-secondary/30 mt-8 flex flex-1 flex-col rounded-[3rem] p-8 backdrop-blur-sm lg:mt-0">
-          <h2 className="text-muted-foreground mb-8 text-center text-2xl font-medium uppercase tracking-widest">
+          <h2 className="text-muted-foreground mb-8 text-center text-2xl font-medium tracking-widest uppercase">
             Últimas Chamadas
           </h2>
 
           <div className="flex flex-1 flex-col gap-6 overflow-hidden">
             <AnimatePresence>
-                {previousTickets.map((ticket, index) => (
+              {previousTickets.map((ticket, index) => (
                 <motion.div
-                    key={ticket.id}
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="bg-card flex items-center justify-between rounded-3xl p-6 shadow-sm"
+                  key={ticket.id}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-card flex items-center justify-between rounded-3xl p-6 shadow-sm"
                 >
-                    <div className="flex flex-col">
-                        <span className="text-muted-foreground text-sm font-medium">{ticket.categoryName}</span>
-                        <span
-                            className="text-5xl font-bold"
-                            style={{ color: ticket.categoryColor }}
-                        >
-                            {ticket.fullCode}
-                        </span>
-                    </div>
-                    <div className="text-right">
-                         <span className="text-muted-foreground block text-sm">Guichê</span>
-                         <span className="text-foreground text-2xl font-bold">{ticket.counterName?.replace('Guichê', '')}</span>
-                    </div>
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground text-sm font-medium">
+                      {ticket.categoryName}
+                    </span>
+                    <span
+                      className="text-5xl font-bold"
+                      style={{ color: ticket.categoryColor }}
+                    >
+                      {ticket.fullCode}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-muted-foreground block text-sm">Guichê</span>
+                    <span className="text-foreground text-2xl font-bold">
+                      {ticket.counterName?.replace('Guichê', '')}
+                    </span>
+                  </div>
                 </motion.div>
-                ))}
+              ))}
             </AnimatePresence>
 
             {previousTickets.length === 0 && (
-                 <div className="text-muted-foreground flex h-full items-center justify-center text-xl italic">
-                     Histórico vazio
-                 </div>
+              <div className="text-muted-foreground flex h-full items-center justify-center text-xl italic">
+                Histórico vazio
+              </div>
             )}
           </div>
 
-           {/* Clock */}
-           <div className="text-muted-foreground mt-auto pt-8 text-center text-4xl font-light tracking-widest">
-                {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-           </div>
+          {/* Clock */}
+          <div className="text-muted-foreground mt-auto pt-8 text-center text-4xl font-light tracking-widest">
+            {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+          </div>
         </aside>
       </main>
     </div>
