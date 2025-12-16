@@ -10,18 +10,18 @@ import type { Counter, Queue, Ticket } from '@/features/queue/types/queue'
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
+import { Separator } from '@/shared/components/ui/separator'
 import { cn } from '@/shared/lib/utils'
 import {
   AlertCircle,
-  ChevronRight,
+  CheckCircle,
   Clock,
   Loader2,
-  Pause,
-  Phone,
-  Play,
+  Megaphone,
+  PauseCircle,
+  PlayCircle,
   RotateCcw,
-  UserCheck,
-  X,
+  UserX,
 } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -88,25 +88,17 @@ export default function CounterPage() {
     return () => unsubscribe()
   }, [queueId, counter?.currentTicketId])
 
-  const handleOpenCounter = async () => {
-    if (!queueId || !counterId || !user) return
+  const updateStatus = async (status: 'open' | 'paused' | 'closed') => {
+    if (!queueId || !counterId) return
     setIsProcessing(true)
     const { error } = await counterService.updateCounterStatus(
       queueId,
       counterId,
-      'open',
-      user.uid,
-      user.displayName || 'Atendente',
+      status,
+      status === 'open' ? user?.uid : undefined,
+      status === 'open' ? user?.displayName || 'Atendente' : undefined,
     )
-    if (error) toast.error('Erro ao abrir guichê', { description: error.message })
-    setIsProcessing(false)
-  }
-
-  const handlePauseCounter = async () => {
-    if (!queueId || !counterId) return
-    setIsProcessing(true)
-    const { error } = await counterService.updateCounterStatus(queueId, counterId, 'paused')
-    if (error) toast.error('Erro ao pausar guichê', { description: error.message })
+    if (error) toast.error('Erro ao atualizar status', { description: error.message })
     setIsProcessing(false)
   }
 
@@ -156,241 +148,244 @@ export default function CounterPage() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Loader2 className="text-primary h-12 w-12 animate-spin" />
       </div>
     )
   }
 
+  const isCounterOpen = counter?.status === 'open'
+  const isCounterPaused = counter?.status === 'paused'
+
   return (
-    <div className="from-background via-background to-muted min-h-screen bg-linear-to-b p-6">
-      <div className="mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+    <div className="bg-muted/20 flex min-h-screen flex-col">
+      {/* Top Bar */}
+      <header className="bg-card sticky top-0 z-10 border-b px-6 py-4 shadow-xs">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div>
-            <h1 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-3xl font-bold text-transparent">
-              {counter?.name || 'Guichê'}
+            <h1 className="text-foreground text-2xl font-bold tracking-tight">
+              {counter?.name || 'Meu Guichê'}
             </h1>
-            <p className="text-muted-foreground mt-1 text-lg">{queue?.name}</p>
+            <p className="text-muted-foreground text-sm">{queue?.name}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge
-              variant={counter?.status === 'open' ? 'default' : 'secondary'}
-              className={cn(
-                counter?.status === 'open' && 'bg-primary',
-                counter?.status === 'paused' && 'bg-chart-4',
-              )}
-            >
-              {counter?.status === 'open' && 'Aberto'}
-              {counter?.status === 'closed' && 'Fechado'}
-              {counter?.status === 'paused' && 'Pausado'}
-            </Badge>
-            {counter?.status === 'closed' && (
+
+          <div className="flex items-center gap-4">
+             {/* Status Toggle */}
+            <div className="flex items-center gap-2 rounded-lg border p-1 shadow-xs">
               <Button
-                onClick={handleOpenCounter}
+                size="sm"
+                variant={isCounterOpen ? 'default' : 'ghost'}
+                onClick={() => updateStatus('open')}
                 disabled={isProcessing}
+                className={cn("gap-2", isCounterOpen && "bg-green-600 hover:bg-green-700")}
               >
-                <Play className="mr-2 h-4 w-4" />
-                Abrir Guichê
+                <PlayCircle className="h-4 w-4" />
+                Aberto
               </Button>
-            )}
-            {counter?.status === 'open' && (
               <Button
-                variant="outline"
-                onClick={handlePauseCounter}
-                disabled={isProcessing}
+                 size="sm"
+                 variant={isCounterPaused ? 'secondary' : 'ghost'}
+                 onClick={() => updateStatus('paused')}
+                 disabled={isProcessing}
+                 className={cn("gap-2", isCounterPaused && "bg-yellow-100 text-yellow-900 hover:bg-yellow-200")}
               >
-                <Pause className="mr-2 h-4 w-4" />
-                Pausar
+                <PauseCircle className="h-4 w-4" />
+                Pausa
               </Button>
-            )}
-            {counter?.status === 'paused' && (
-              <Button
-                onClick={handleOpenCounter}
-                disabled={isProcessing}
+               <Button
+                 size="sm"
+                 variant={counter?.status === 'closed' ? 'secondary' : 'ghost'}
+                 onClick={() => updateStatus('closed')}
+                 disabled={isProcessing}
+                 className="gap-2"
               >
-                <Play className="mr-2 h-4 w-4" />
-                Retomar
+                Fechado
               </Button>
-            )}
+            </div>
           </div>
         </div>
+      </header>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Painel Principal */}
-          <div className="lg:col-span-2">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>Atendimento Atual</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {currentTicket ? (
-                  <div className="space-y-6">
-                    {/* Ticket Atual */}
-                    <div
-                      className="relative overflow-hidden rounded-2xl border-2 p-10 text-center"
-                      style={{ borderColor: currentTicket.categoryColor + '30' }}
-                    >
-                      {/* Background Glow */}
-                      <div
-                        className="absolute inset-0 opacity-10"
-                        style={{
-                          background: `radial-gradient(ellipse at center, ${currentTicket.categoryColor}, transparent 70%)`,
-                        }}
-                      />
-                      <Badge
-                        className="relative mb-4 shadow-lg"
-                        style={{
-                          backgroundColor: currentTicket.categoryColor,
-                          boxShadow: `0 4px 20px ${currentTicket.categoryColor}40`,
-                        }}
-                      >
-                        {currentTicket.categoryName}
-                      </Badge>
-                      <div
-                        className="relative text-7xl font-black"
-                        style={{
-                          color: currentTicket.categoryColor,
-                          textShadow: `0 4px 20px ${currentTicket.categoryColor}30`,
-                        }}
-                      >
-                        {currentTicket.fullCode}
-                      </div>
-                      {currentTicket.isPriority && (
-                        <Badge
-                          variant="accent"
-                          className="bg-chart-4 text-primary-foreground relative mt-4 shadow-md"
-                        >
-                          Preferencial
-                        </Badge>
-                      )}
-                      <div className="text-muted-foreground relative mt-4 flex items-center justify-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        Esperou: {Math.floor((currentTicket.waitTimeSeconds || 0) / 60)} min
-                      </div>
-                    </div>
-
-                    {/* Ações */}
-                    <div className="grid grid-cols-2 gap-4">
-                      {currentTicket.status === 'calling' && (
-                        <>
-                          <Button
-                            size="lg"
-                            variant="outline"
-                            onClick={handleRecall}
-                            disabled={isProcessing}
-                          >
-                            <RotateCcw className="mr-2 h-4 w-4" />
-                            Rechamar
-                          </Button>
-                          <Button
-                            size="lg"
-                            className="bg-primary hover:bg-primary/90"
-                            onClick={handleStartServing}
-                            disabled={isProcessing}
-                          >
-                            <UserCheck className="mr-2 h-4 w-4" />
-                            Iniciar Atendimento
-                          </Button>
-                        </>
-                      )}
-                      {currentTicket.status === 'serving' && (
-                        <>
-                          <Button
-                            size="lg"
-                            variant="outline"
-                            className="border-destructive text-destructive hover:bg-destructive/10"
-                            onClick={() => handleFinish('no_show')}
-                            disabled={isProcessing}
-                          >
-                            <X className="mr-2 h-4 w-4" />
-                            Não Compareceu
-                          </Button>
-                          <Button
-                            size="lg"
-                            className="bg-primary hover:bg-primary/90"
-                            onClick={() => handleFinish('finished')}
-                            disabled={isProcessing}
-                          >
-                            <UserCheck className="mr-2 h-4 w-4" />
-                            Finalizar
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="py-16 text-center">
-                    <AlertCircle className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-                    <p className="text-muted-foreground text-lg">Nenhum atendimento em andamento</p>
-                    <Button
-                      size="lg"
-                      className="mt-6"
-                      onClick={handleCallNext}
-                      disabled={
-                        isProcessing || counter?.status !== 'open' || waitingTickets.length === 0
-                      }
-                    >
-                      {isProcessing ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Phone className="mr-2 h-4 w-4" />
-                      )}
-                      Chamar Próximo
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Fila de Espera */}
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Fila de Espera
-                  <Badge variant="secondary">{waitingTickets.length}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="max-h-[500px] overflow-y-auto">
-                {waitingTickets.length === 0 ? (
-                  <p className="text-muted-foreground py-8 text-center">Fila vazia</p>
-                ) : (
-                  <div className="space-y-2">
-                    {waitingTickets.map((ticket, index) => (
-                      <div
-                        key={ticket.id}
-                        className={cn(
-                          'flex items-center justify-between rounded-lg border p-3',
-                          index === 0 && 'border-primary bg-primary/5',
-                          ticket.isPriority && 'border-chart-4 bg-chart-4/10',
+      <main className="mx-auto grid w-full max-w-7xl flex-1 gap-6 p-6 lg:grid-cols-3">
+        {/* Main Action Area (2/3) */}
+        <div className="flex flex-col gap-6 lg:col-span-2">
+            {/* Current Ticket Card */}
+            <Card className="flex flex-1 flex-col overflow-hidden border-2 shadow-md transition-shadow hover:shadow-lg">
+                <CardHeader className="bg-muted/30 pb-4">
+                    <CardTitle className="flex items-center justify-between text-xl">
+                        <span>Atendimento Atual</span>
+                        {currentTicket && (
+                            <Badge variant={currentTicket.status === 'calling' ? 'secondary' : 'default'} className="text-sm px-3 py-1">
+                                {currentTicket.status === 'calling' ? 'Chamando...' : 'Em Atendimento'}
+                            </Badge>
                         )}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="text-primary-foreground flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold"
-                            style={{ backgroundColor: ticket.categoryColor }}
-                          >
-                            {ticket.fullCode.slice(0, 1)}
-                          </div>
-                          <div>
-                            <div className="font-semibold">{ticket.fullCode}</div>
-                            <div className="text-muted-foreground text-xs">
-                              {ticket.categoryName}
-                              {ticket.isPriority && ' • Preferencial'}
+                    </CardTitle>
+                </CardHeader>
+
+                <CardContent className="flex flex-1 flex-col items-center justify-center p-12 text-center">
+                    {currentTicket ? (
+                        <div className="w-full max-w-md space-y-8">
+                            <div className="space-y-4">
+                                <div className="text-muted-foreground text-lg font-medium uppercase tracking-widest">
+                                    {currentTicket.categoryName}
+                                </div>
+                                <div
+                                    className="text-8xl font-black tracking-tighter"
+                                    style={{ color: currentTicket.categoryColor }}
+                                >
+                                    {currentTicket.fullCode}
+                                </div>
+                                {currentTicket.isPriority && (
+                                     <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-transparent text-lg px-4 py-1 rounded-full">
+                                         Prioridade
+                                     </Badge>
+                                )}
                             </div>
-                          </div>
+
+                             {/* Timer info */}
+                             <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                                <Clock className="h-4 w-4" />
+                                <span>Chegou às {currentTicket.createdAt?.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                             </div>
+
+                             <Separator />
+
+                             {/* Actions */}
+                             <div className="grid grid-cols-2 gap-4">
+                                {currentTicket.status === 'calling' && (
+                                    <>
+                                        <Button
+                                            size="lg"
+                                            variant="outline"
+                                            onClick={handleRecall}
+                                            disabled={isProcessing}
+                                            className="h-14 text-lg border-2"
+                                        >
+                                            <RotateCcw className="mr-2 h-5 w-5" />
+                                            Rechamar
+                                        </Button>
+                                        <Button
+                                            size="lg"
+                                            onClick={handleStartServing}
+                                            disabled={isProcessing}
+                                            className="h-14 text-lg bg-green-600 hover:bg-green-700 text-white"
+                                        >
+                                            <CheckCircle className="mr-2 h-5 w-5" />
+                                            Iniciar
+                                        </Button>
+                                    </>
+                                )}
+
+                                {currentTicket.status === 'serving' && (
+                                    <>
+                                         <Button
+                                            size="lg"
+                                            variant="outline"
+                                            onClick={() => handleFinish('no_show')}
+                                            disabled={isProcessing}
+                                            className="h-14 text-lg border-red-200 text-red-700 hover:bg-red-50"
+                                        >
+                                            <UserX className="mr-2 h-5 w-5" />
+                                            Ausente
+                                        </Button>
+                                        <Button
+                                            size="lg"
+                                            onClick={() => handleFinish('finished')}
+                                            disabled={isProcessing}
+                                            className="h-14 text-lg"
+                                        >
+                                            <CheckCircle className="mr-2 h-5 w-5" />
+                                            Finalizar
+                                        </Button>
+                                    </>
+                                )}
+                             </div>
                         </div>
-                        {index === 0 && <ChevronRight className="text-primary h-5 w-5" />}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-12 opacity-60">
+                             <div className="bg-muted mb-6 rounded-full p-6">
+                                 <AlertCircle className="text-muted-foreground h-12 w-12" />
+                             </div>
+                             <h3 className="text-2xl font-semibold">Nenhum atendimento</h3>
+                             <p className="text-muted-foreground mt-2 max-w-xs">
+                                 Abra o guichê e chame o próximo da fila para começar.
+                             </p>
+
+                             <Button
+                                size="lg"
+                                className="mt-8 h-16 w-64 text-xl shadow-lg"
+                                onClick={handleCallNext}
+                                disabled={!isCounterOpen || isProcessing || waitingTickets.length === 0}
+                             >
+                                 {isProcessing ? <Loader2 className="animate-spin" /> : <Megaphone className="mr-2" />}
+                                 Chamar Próximo
+                             </Button>
+                        </div>
+                    )}
+                </CardContent>
             </Card>
-          </div>
         </div>
-      </div>
+
+        {/* Sidebar - Waiting List (1/3) */}
+        <div className="flex flex-col gap-6">
+            <Card className="flex h-full flex-col shadow-sm">
+                <CardHeader className="border-b bg-muted/20 pb-4">
+                    <div className="flex items-center justify-between">
+                         <CardTitle className="text-lg">Fila de Espera</CardTitle>
+                         <Badge variant="outline" className="bg-background">{waitingTickets.length}</Badge>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex-1 overflow-auto p-0">
+                    {waitingTickets.length === 0 ? (
+                        <div className="flex h-40 items-center justify-center text-muted-foreground">
+                            Fila vazia
+                        </div>
+                    ) : (
+                        <ul className="divide-y">
+                            {waitingTickets.map((ticket) => (
+                                <li
+                                    key={ticket.id}
+                                    className={cn(
+                                        "flex items-center justify-between p-4 transition-colors hover:bg-muted/50",
+                                        ticket.isPriority && "bg-red-50/50 dark:bg-red-900/10"
+                                    )}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div
+                                            className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm"
+                                            style={{ backgroundColor: ticket.categoryColor }}
+                                        >
+                                            {ticket.fullCode.substring(0, 1)}
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-lg leading-none">{ticket.fullCode}</div>
+                                            <div className="text-muted-foreground text-xs mt-1">
+                                                {ticket.categoryName}
+                                                {ticket.isPriority && <span className="text-red-600 font-semibold ml-1">• Prioridade</span>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-muted-foreground text-xs">
+                                       {Math.floor((Date.now() - ticket.createdAt.toMillis()) / 60000)} min
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </CardContent>
+                <div className="bg-muted/20 border-t p-4">
+                    <Button
+                        className="w-full"
+                        variant="secondary"
+                        onClick={handleCallNext}
+                        disabled={!isCounterOpen || isProcessing || waitingTickets.length === 0}
+                    >
+                        <Megaphone className="mr-2 h-4 w-4" />
+                        Chamar Próximo
+                    </Button>
+                </div>
+            </Card>
+        </div>
+      </main>
     </div>
   )
 }
