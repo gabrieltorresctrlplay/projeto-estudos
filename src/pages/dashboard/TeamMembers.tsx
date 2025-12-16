@@ -10,8 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FeatureIcon } from '@/components/ui/feature-icon'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { InviteMemberDialog } from '@/components/dashboard/InviteMemberDialog'
+import { TeamMembersSkeleton } from '@/components/skeletons/PageSkeleton'
 
 // Extended member type with user profile
 type MemberWithUser = OrganizationMember & { user?: UserProfile }
@@ -172,15 +172,11 @@ export default function TeamMembers() {
   }
 
   if (loading || isSyncing) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
+    return <TeamMembersSkeleton />
   }
 
   return (
-    <div className="animate-fade-in-up space-y-8">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -103,7 +103,9 @@ export function ChatWindow({ chatId, otherUser, onBack }: ChatWindowProps) {
             <AvatarFallback>{otherUser.displayName?.substring(0, 2) || '?'}</AvatarFallback>
           </Avatar>
           <div className="flex cursor-pointer flex-col">
-            <span className="text-sm font-semibold">{otherUser.displayName || 'Usuário'}</span>
+            <span className="text-foreground text-sm font-semibold">
+              {otherUser.displayName || 'Usuário'}
+            </span>
             <span className="text-muted-foreground text-xs">
               {otherUser.isOnline ? 'Online' : 'Visto por último hoje às 10:00'}
             </span>

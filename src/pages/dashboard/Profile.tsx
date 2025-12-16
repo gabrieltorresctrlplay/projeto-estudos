@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FeatureIcon } from '@/components/ui/feature-icon'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { ProfileSkeleton } from '@/components/skeletons/PageSkeleton'
 
 export default function Profile() {
   const { user } = useOrganizationContext()
@@ -49,15 +49,11 @@ export default function Profile() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
+    return <ProfileSkeleton />
   }
 
   return (
-    <div className="animate-fade-in-up space-y-8">
+    <div className="space-y-8">
       <div>
         <h2 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-4xl font-bold tracking-tight text-transparent">
           Perfil

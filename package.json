@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "deploy": "npm run build && firebase deploy --only hosting",
-    "emulators": "firebase emulators:start",
+    "emulators": "firebase emulators:start --project demo-projeto-estudos --import=./emulator-data --export-on-exit=./emulator-data",
     "ci": "firebase emulators:start --project demo-projeto-estudos --import=./emulator-data --export-on-exit",
     "format": "prettier --write .",
     "cli": "start \"\" \"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -WorkingDirectory ."

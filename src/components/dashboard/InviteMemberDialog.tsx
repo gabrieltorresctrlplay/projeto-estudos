@@ -155,7 +155,7 @@ export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogPro
             <div className="bg-muted flex items-center gap-2 rounded-lg p-4">
               <Ticket className="text-primary h-5 w-5" />
               <div className="flex-1">
-                <p className="text-sm font-medium">Token gerado!</p>
+                <p className="text-foreground text-sm font-medium">Token gerado!</p>
                 <p className="text-muted-foreground text-xs">
                   Compartilhe este token com a pessoa que deseja convidar.
                 </p>

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { QueueSkeleton } from '@/components/skeletons/PageSkeleton'
 
 export default function QueuePage() {
   const navigate = useNavigate()
@@ -108,15 +109,11 @@ export default function QueuePage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    )
+    return <QueueSkeleton />
   }
 
   return (
-    <div className="animate-fade-in-up space-y-8">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-4xl font-bold tracking-tight text-transparent">

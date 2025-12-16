@@ -6,7 +6,6 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute'
 import { DashboardLayout } from './components/layout/dashboard/DashboardLayout'
 import { MainLayout } from './components/layout/MainLayout'
-import { LoadingSpinner } from './components/ui/loading-spinner'
 import { OrganizationProvider } from './contexts/OrganizationContext'
 
 // Lazy load pages for better performance
@@ -33,13 +32,7 @@ function App() {
           closeButton
           position="top-right"
         />
-        <Suspense
-          fallback={
-            <div className="flex h-screen items-center justify-center">
-              <LoadingSpinner />
-            </div>
-          }
-        >
+        <Suspense fallback={null}>
           <Routes>
             {/* Public Routes */}
             <Route

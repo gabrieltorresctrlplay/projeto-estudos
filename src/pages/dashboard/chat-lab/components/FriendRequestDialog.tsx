@@ -163,7 +163,9 @@ export function FriendRequestDialog() {
                 </AvatarFallback>
               </Avatar>
               <div className="text-sm">
-                <p className="leading-none font-medium">{foundUser.displayName || 'Sem nome'}</p>
+                <p className="text-foreground leading-none font-medium">
+                  {foundUser.displayName || 'Sem nome'}
+                </p>
                 <p className="text-muted-foreground mt-1 text-xs">{foundUser.email}</p>
               </div>
             </div>

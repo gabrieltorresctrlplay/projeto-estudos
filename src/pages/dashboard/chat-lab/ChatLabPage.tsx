@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { MessageSquare } from 'lucide-react'
 
 import { authService } from '@/lib/auth'
@@ -14,12 +13,7 @@ import { ChatWindow } from './components/ChatWindow'
 
 const EmptyState = () => (
   <div className="flex flex-1 flex-col items-center justify-center p-8 text-center backdrop-blur-3xl">
-    <motion.div
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.5, type: 'spring' }}
-      className="max-w-md space-y-6"
-    >
+    <div className="max-w-md space-y-6">
       <div className="mb-6 flex justify-center">
         <FeatureIcon
           icon={MessageSquare}
@@ -41,7 +35,7 @@ const EmptyState = () => (
         <span>•</span>
         <span>Fast</span>
       </div>
-    </motion.div>
+    </div>
   </div>
 )
 

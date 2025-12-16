@@ -101,6 +101,21 @@ export function AppSidebar() {
 
   const menuItems = isVisitor ? visitorMenuItems : memberMenuItems
 
+  // Prefetch components on hover for faster navigation
+  const prefetchRoute = (path: string) => {
+    if (path.includes('/team')) import('@/pages/dashboard/TeamMembers')
+    else if (path.includes('/fila')) import('@/pages/dashboard/Queue')
+    else if (path.includes('/perfil')) import('@/pages/dashboard/Profile')
+    else if (path.includes('/chat-lab')) import('@/pages/dashboard/chat-lab/ChatLabPage')
+    else if (
+      path.includes('/estoque') ||
+      path.includes('/pedidos') ||
+      path.includes('/estatisticas')
+    )
+      import('@/pages/dashboard/UnderConstruction')
+    else import('@/pages/dashboard/Dashboard')
+  }
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -138,7 +153,10 @@ export function AppSidebar() {
                       window.location.pathname.includes(item.path.split('/').pop() || '')
                     }
                   >
-                    <Link to={item.path}>
+                    <Link
+                      to={item.path}
+                      onMouseEnter={() => prefetchRoute(item.path)}
+                    >
                       <item.icon />
                       <span>{item.label}</span>
                     </Link>

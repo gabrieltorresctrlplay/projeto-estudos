@@ -12,8 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FeatureIcon } from '@/components/ui/feature-icon'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { CompanyOverview } from '@/components/dashboard/CompanyOverview'
+import { DashboardSkeleton } from '@/components/skeletons/PageSkeleton'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -149,11 +149,7 @@ export default function Dashboard() {
 
   // Show loading while checking auth or loading organizations
   if (authLoading || orgsLoading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   if (orgError) {
@@ -169,7 +165,7 @@ export default function Dashboard() {
   // Visitor Dashboard - show action cards
   if (isVisitor) {
     return (
-      <div className="animate-fade-in-up space-y-8">
+      <div className="space-y-8">
         <div className="text-center md:text-left">
           <h2 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-4xl font-bold tracking-tight text-transparent">
             Bem-vindo ao NerfasInc Space
@@ -278,16 +274,12 @@ export default function Dashboard() {
     !targetMembership ||
     currentOrganization.id !== targetMembership.organizationId
   ) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   // Member Dashboard - show organization overview
   return (
-    <div className="animate-fade-in-up space-y-8">
+    <div className="space-y-8">
       <div>
         <h2 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-4xl font-bold tracking-tight text-transparent">
           Página Inicial

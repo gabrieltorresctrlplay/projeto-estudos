@@ -80,9 +80,28 @@ export function ChatSidebar({ onSelectFriend }: ChatSidebarProps) {
       },
     )
 
-    // 3. Listen for active chats
-    const unsubscribeChats = chatService.subscribeToChats(currentUser.uid, (chatList) => {
-      setChats(chatList)
+    // 3. Listen for active chats and hydrate other users
+    const unsubscribeChats = chatService.subscribeToChats(currentUser.uid, async (chatList) => {
+      // Hydrate other users for each chat
+      const currentUid = currentUser.uid
+      const chatsWithHydratedUsers = await Promise.all(
+        chatList.map(async (chat) => {
+          // Se já tem otherUser hidratado, usar
+          if (chat.otherUser?.displayName) return chat
+
+          // Encontrar o ID do outro participante
+          const otherUserId = chat.participants.find((id) => id !== currentUid)
+          if (!otherUserId) return chat
+
+          try {
+            const otherUser = await chatService.getUserProfile(otherUserId)
+            return { ...chat, otherUser: otherUser || undefined }
+          } catch {
+            return chat
+          }
+        }),
+      )
+      setChats(chatsWithHydratedUsers)
     })
 
     // Cleanup all subscriptions
@@ -201,7 +220,7 @@ export function ChatSidebar({ onSelectFriend }: ChatSidebarProps) {
                       </Avatar>
                       <div className="flex-1 overflow-hidden">
                         <div className="flex items-center justify-between">
-                          <h4 className="truncate font-medium">
+                          <h4 className="text-foreground truncate font-medium">
                             {otherUserData?.displayName || 'Usuário'}
                           </h4>
                           {chat.lastMessage?.createdAt && (
@@ -253,7 +272,7 @@ export function ChatSidebar({ onSelectFriend }: ChatSidebarProps) {
                           </AvatarFallback>
                         </Avatar>
                         <div className="text-sm">
-                          <p className="font-medium">
+                          <p className="text-foreground font-medium">
                             {req.fromUser?.displayName || req.toUserEmail || 'Usuário'}
                           </p>
                           <p className="text-muted-foreground text-[10px]">quer ser seu amigo</p>
@@ -305,7 +324,7 @@ export function ChatSidebar({ onSelectFriend }: ChatSidebarProps) {
                       <AvatarFallback>{friendship.friend?.displayName?.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 overflow-hidden">
-                      <h4 className="truncate font-medium">
+                      <h4 className="text-foreground truncate font-medium">
                         {friendship.friend?.displayName || 'Usuário'}
                       </h4>
                       <p className="text-muted-foreground truncate text-xs">

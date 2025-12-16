@@ -1,3 +1,20 @@
 node_modules/
 dist/
 build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Firebase
+emulator-data/
+.firebase/
+firebase-debug.log
+firestore-debug.log
+firebase-export-*/
+
+# IDE
+.idea/
+*.swp
+*.swo
