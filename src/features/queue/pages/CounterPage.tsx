@@ -96,19 +96,22 @@ export default function CounterPage() {
   const updateStatus = async (status: 'open' | 'paused' | 'closed') => {
     if (!queueId || !counterId) return
     setIsProcessing(true)
-    await counterService.updateStatus(queueId, counterId, status)
+    await counterService.updateCounterStatus(
+      queueId,
+      counterId,
+      status,
+      user?.uid,
+      user?.displayName || undefined,
+    )
     setIsProcessing(false)
   }
 
   const handleCallNext = async () => {
     if (!queueId || !counterId || !user?.uid) return
     setIsProcessing(true)
-    const { ticket, error } = await ticketService.callNextTicket(
-      queueId,
+    const { ticket, error } = await ticketService.callNextTicket(queueId, {
       counterId,
-      counter?.name || 'Guichê',
-      user.uid,
-    )
+    })
     if (error) toast.error('Erro ao chamar')
     else if (ticket) toast.success(`Chamando ${ticket.fullCode}`)
     setIsProcessing(false)

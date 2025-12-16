@@ -37,6 +37,7 @@ export default function QueueAnalyticsPage() {
     noShowRate: number
   } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
 
   const isAdmin = currentMemberRole === 'owner' || currentMemberRole === 'admin'
 
@@ -52,7 +53,10 @@ export default function QueueAnalyticsPage() {
       ])
 
       if (queueRes.data) setQueue(queueRes.data)
-      if (summaryRes.data) {
+
+      if (summaryRes.error) {
+        setError(summaryRes.error)
+      } else if (summaryRes.data) {
         setMetrics(summaryRes.data.today)
         setWeekSummary(summaryRes.data.weekTotal)
       }
@@ -84,6 +88,21 @@ export default function QueueAnalyticsPage() {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="text-primary h-12 w-12 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-destructive/5 border-destructive/20 m-8 flex h-screen flex-col items-center justify-center gap-4 rounded-lg border p-8 text-center">
+        <BarChart3 className="text-destructive h-12 w-12" />
+        <h1 className="text-destructive text-xl font-bold">Erro ao carregar métricas</h1>
+        <p className="text-muted-foreground max-w-md">
+          {error.message.includes('requires an index')
+            ? 'O sistema está processando os índices do banco de dados. Isso pode levar alguns minutos. Por favor, aguarde e recarregue a página.'
+            : error.message}
+        </p>
+        <Button onClick={() => window.location.reload()}>Recarregar Página</Button>
       </div>
     )
   }
