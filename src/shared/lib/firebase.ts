@@ -18,6 +18,7 @@ export const db = getFirestore(app)
 
 // Connect to emulators in development/test mode
 if (import.meta.env.VITE_USE_EMULATORS === 'true') {
-  connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true })
-  connectFirestoreEmulator(db, 'localhost', 8080)
+  const emulatorHost = import.meta.env.VITE_EMULATOR_HOST || 'localhost'
+  connectAuthEmulator(auth, `http://${emulatorHost}:9099`, { disableWarnings: true })
+  connectFirestoreEmulator(db, emulatorHost, 8080)
 }
