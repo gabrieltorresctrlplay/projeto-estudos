@@ -310,12 +310,15 @@ export const queueService = {
       }
       const counter = counterDoc.data() as Counter
 
-      // 2. Buscar tickets em espera - Query simplificada, filtro client-side
-      const ticketsSnapshot = await getDocs(collection(db, 'queues', queueId, 'tickets'))
+      // 2. Buscar tickets em espera - Otimizado com filtro no banco
+      const q = query(
+        collection(db, 'queues', queueId, 'tickets'),
+        where('status', '==', 'waiting'),
+      )
+      const ticketsSnapshot = await getDocs(q)
 
       let waitingTickets = ticketsSnapshot.docs
         .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }) as Ticket)
-        .filter((t) => t.status === 'waiting')
 
       // Filtrar por categoria se especificado
       if (categoryId) {
@@ -466,13 +469,17 @@ export const queueService = {
     displayCount: number,
     callback: (tickets: Ticket[]) => void,
   ) {
-    // Busca todos os tickets e filtra client-side
-    return onSnapshot(
+    // Busca apenas tickets sendo chamados ou atendidos
+    const q = query(
       collection(db, 'queues', queueId, 'tickets'),
+      where('status', 'in', ['calling', 'serving']),
+    )
+
+    return onSnapshot(
+      q,
       (snapshot) => {
         const tickets = snapshot.docs
           .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }) as Ticket)
-          .filter((t) => t.status === 'calling' || t.status === 'serving')
           .sort((a, b) => {
             const aTime = a.calledAt?.toMillis?.() || 0
             const bTime = b.calledAt?.toMillis?.() || 0
@@ -497,12 +504,17 @@ export const queueService = {
     callback: (tickets: Ticket[]) => void,
     categoryId?: string,
   ) {
-    return onSnapshot(
+    // Otimização: Busca apenas tickets com status 'waiting'
+    const q = query(
       collection(db, 'queues', queueId, 'tickets'),
+      where('status', '==', 'waiting'),
+    )
+
+    return onSnapshot(
+      q,
       (snapshot) => {
         let tickets = snapshot.docs
           .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }) as Ticket)
-          .filter((t) => t.status === 'waiting')
 
         if (categoryId) {
           tickets = tickets.filter((t) => t.categoryId === categoryId)
@@ -554,15 +566,14 @@ export const queueService = {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
 
-      // Buscar todos os tickets e filtrar client-side
-      const ticketsSnapshot = await getDocs(collection(db, 'queues', queueId, 'tickets'))
-      const allTickets = ticketsSnapshot.docs.map((docSnap) => docSnap.data()) as Ticket[]
+      // Otimização: Filtrar tickets de hoje diretamente no banco
+      const q = query(
+        collection(db, 'queues', queueId, 'tickets'),
+        where('createdAt', '>=', Timestamp.fromDate(today)),
+      )
 
-      // Filtrar tickets de hoje
-      const tickets = allTickets.filter((t) => {
-        const ticketDate = t.createdAt?.toDate?.()
-        return ticketDate && ticketDate >= today
-      })
+      const ticketsSnapshot = await getDocs(q)
+      const tickets = ticketsSnapshot.docs.map((docSnap) => docSnap.data()) as Ticket[]
 
       const waiting = tickets.filter((t) => t.status === 'waiting')
       const serving = tickets.filter((t) => t.status === 'serving' || t.status === 'calling')
