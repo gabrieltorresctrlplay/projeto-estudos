@@ -24,6 +24,9 @@ const CounterPage = lazy(() => import('@/features/queue/pages/CounterPage'))
 const CounterManagementPage = lazy(() => import('@/features/queue/pages/CounterManagementPage'))
 const MyCountersPage = lazy(() => import('@/features/queue/pages/MyCountersPage'))
 const QueueAnalyticsPage = lazy(() => import('@/features/queue/pages/QueueAnalyticsPage'))
+const TrackTicketPage = lazy(() => import('@/features/queue/pages/TrackTicketPage'))
+const FeedbackPage = lazy(() => import('@/features/queue/pages/FeedbackPage'))
+const QueueSettingsPage = lazy(() => import('@/features/queue/pages/QueueSettingsPage'))
 
 function App() {
   return (
@@ -61,6 +64,16 @@ function App() {
               path="/queue/:queueId/monitor"
               element={<MonitorPage />}
             />
+            {/* Public tracking page - accessible via QR code */}
+            <Route
+              path="/track/:token"
+              element={<TrackTicketPage />}
+            />
+            {/* Public feedback page */}
+            <Route
+              path="/feedback/:token"
+              element={<FeedbackPage />}
+            />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
@@ -88,6 +101,11 @@ function App() {
               <Route
                 path="/queue/:queueId/analytics"
                 element={<QueueAnalyticsPage />}
+              />
+              {/* Queue Settings - Admin only */}
+              <Route
+                path="/queue/:queueId/settings"
+                element={<QueueSettingsPage />}
               />
               <Route element={<DashboardLayout />}>
                 <Route

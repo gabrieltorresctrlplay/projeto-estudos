@@ -1,11 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { queueManagementService, realtimeService } from '@/features/queue/services/queueService'
 import type { Queue, Ticket } from '@/features/queue/types/queue'
-import { Button } from '@/shared/components/ui/button'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Loader2, Volume2, VolumeX } from 'lucide-react'
+import { Volume2, VolumeX } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 
+/**
+ * MonitorPage - Zen Digital Display
+ *
+ * Design Philosophy:
+ * - The number is the protagonist. Everything else fades.
+ * - Silence is elegance. Minimal elements, maximum impact.
+ * - Slow, deliberate animations that breathe.
+ */
 export default function MonitorPage() {
   const { queueId } = useParams<{ queueId: string }>()
 
@@ -26,40 +33,33 @@ export default function MonitorPage() {
 
     loadQueue()
 
-    // Subscribe para tickets chamados
-    const unsubscribe = realtimeService.subscribeToCalledTickets(
-      queueId,
-      5, // Mostrar últimas 5 chamadas
-      (tickets) => {
-        setCalledTickets(tickets)
+    const unsubscribe = realtimeService.subscribeToCalledTickets(queueId, 4, (tickets) => {
+      setCalledTickets(tickets)
 
-        // Chamar áudio se novo ticket OU rechamada (recallCount mudou)
-        if (tickets.length > 0) {
-          const latestTicket = tickets[0]
-          // Criar uma chave única que inclui id e recallCount
-          const ticketKey = `${latestTicket.id}-${latestTicket.recallCount || 0}`
+      if (tickets.length > 0) {
+        const latestTicket = tickets[0]
+        const ticketKey = `${latestTicket.id}-${latestTicket.recallCount || 0}`
 
-          if (ticketKey !== lastCalledRef.current) {
-            lastCalledRef.current = ticketKey
-            if (audioEnabled) {
-              playCallAudio(latestTicket)
-            }
+        if (ticketKey !== lastCalledRef.current) {
+          lastCalledRef.current = ticketKey
+          if (audioEnabled) {
+            playCallAudio(latestTicket)
           }
         }
-      },
-    )
+      }
+    })
 
     return () => unsubscribe()
   }, [queueId, audioEnabled])
 
   const playCallAudio = (ticket: Ticket) => {
-    // Usar Web Speech API para TTS
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(
         `Senha ${ticket.fullCode.split('').join(' ')}, ${ticket.counterName}`,
       )
       utterance.lang = 'pt-BR'
-      utterance.rate = 0.9
+      utterance.rate = 0.85
+      utterance.pitch = 0.9
       speechSynthesis.speak(utterance)
     }
   }
@@ -67,132 +67,164 @@ export default function MonitorPage() {
   if (isLoading) {
     return (
       <div className="bg-background flex h-screen items-center justify-center">
-        <Loader2 className="text-primary h-16 w-16 animate-spin" />
+        <motion.div
+          className="bg-primary/20 h-1 w-32 overflow-hidden rounded-full"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <motion.div
+            className="bg-primary h-full w-1/3 rounded-full"
+            animate={{ x: ['0%', '200%'] }}
+            transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        </motion.div>
       </div>
     )
   }
 
   const currentTicket = calledTickets[0]
-  const previousTickets = calledTickets.slice(1)
+  const previousTickets = calledTickets.slice(1, 4)
 
   return (
-    <div className="bg-background text-foreground relative flex min-h-screen flex-col overflow-hidden">
-      {/* Botão de Áudio - Fixed Position */}
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label={audioEnabled ? 'Desativar áudio' : 'Ativar áudio'}
-        className="bg-card text-muted-foreground hover:bg-muted hover:text-foreground absolute top-8 right-8 z-50 h-14 w-14 rounded-full shadow-lg backdrop-blur-sm transition-all"
+    <div className="bg-background text-foreground relative flex h-screen flex-col overflow-hidden">
+      {/* Floating Audio Control - Minimal, almost invisible */}
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.4 }}
+        whileHover={{ opacity: 1, scale: 1.1 }}
         onClick={() => setAudioEnabled(!audioEnabled)}
+        className="text-muted-foreground absolute top-8 right-8 z-50 p-4 transition-all duration-500"
+        aria-label={audioEnabled ? 'Desativar áudio' : 'Ativar áudio'}
       >
-        {audioEnabled ? <Volume2 className="h-8 w-8" /> : <VolumeX className="h-8 w-8" />}
-      </Button>
+        {audioEnabled ? <Volume2 className="h-6 w-6" /> : <VolumeX className="h-6 w-6" />}
+      </motion.button>
 
-      <main className="flex flex-1 flex-col p-8 md:p-12 lg:flex-row">
-        {/* Left Side - Current Ticket (66%) */}
-        <section className="bg-card relative flex flex-2 flex-col items-center justify-center rounded-[3rem] p-12 shadow-2xl lg:mr-8">
-          {/* Header Inside Card */}
-          <div className="absolute top-12 left-0 w-full text-center">
-            <h1 className="text-muted-foreground text-3xl font-light tracking-widest uppercase">
-              {queue?.name || 'Fila'}
-            </h1>
-          </div>
-
+      {/* Main Stage */}
+      <main className="flex flex-1">
+        {/* Left: The Protagonist - 70% */}
+        <section className="flex flex-[7] flex-col items-center justify-center">
           <AnimatePresence mode="wait">
             {currentTicket ? (
-              <motion.div
-                key={currentTicket.id}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                className="flex flex-col items-center justify-center text-center"
+              <motion.article
+                key={`${currentTicket.id}-${currentTicket.recallCount}`}
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                className="flex flex-col items-center text-center"
               >
-                {/* Category Badge */}
-                <div
-                  className="mb-8 rounded-full px-12 py-4 text-3xl font-bold shadow-sm"
-                  style={{
-                    backgroundColor: `${currentTicket.categoryColor}20`,
-                    color: currentTicket.categoryColor,
+                {/* Queue Name - Whisper */}
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.3 }}
+                  className="text-muted-foreground mb-8 text-sm font-light tracking-[0.3em] uppercase"
+                >
+                  {queue?.name}
+                </motion.span>
+
+                {/* THE NUMBER - Hero */}
+                <motion.div
+                  className="relative"
+                  animate={{
+                    scale: [1, 1.008, 1],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
                   }}
                 >
-                  {currentTicket.categoryName}
-                </div>
+                  {/* Subtle glow behind */}
+                  <div
+                    className="absolute inset-0 opacity-20 blur-3xl"
+                    style={{ backgroundColor: currentTicket.categoryColor }}
+                  />
 
-                {/* The Big Number */}
-                <motion.div
-                  className="text-[15rem] leading-none font-black tracking-tighter md:text-[20rem]"
-                  style={{ color: currentTicket.categoryColor }}
-                  animate={{ scale: [1, 1.02, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  {currentTicket.fullCode}
+                  <span
+                    className="relative block text-[clamp(8rem,25vw,22rem)] leading-[0.85] font-black tracking-tighter"
+                    style={{ color: currentTicket.categoryColor }}
+                  >
+                    {currentTicket.fullCode}
+                  </span>
                 </motion.div>
 
-                {/* Counter Info */}
-                <div className="mt-12 flex flex-col items-center">
-                  <span className="text-muted-foreground text-4xl font-light">Dirija-se ao</span>
-                  <span className="text-foreground mt-2 text-6xl font-bold">
+                {/* Counter - Subtle guide */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.6 }}
+                  className="mt-16 flex flex-col items-center gap-2"
+                >
+                  <span className="text-muted-foreground/60 text-lg font-light tracking-widest uppercase">
+                    Dirija-se ao
+                  </span>
+                  <span className="text-foreground text-5xl font-semibold tracking-wide">
                     {currentTicket.counterName}
                   </span>
-                </div>
+                </motion.div>
 
+                {/* Priority - Elegant badge */}
                 {currentTicket.isPriority && (
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-secondary text-secondary-foreground border-primary mt-8 rounded-full border-2 px-8 py-3 text-2xl font-bold shadow-lg"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="border-primary/30 text-primary mt-12 rounded-full border px-8 py-3 text-sm font-medium tracking-widest uppercase"
                   >
-                    Prioridade
+                    Atendimento Preferencial
                   </motion.div>
                 )}
-              </motion.div>
+              </motion.article>
             ) : (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center text-center opacity-50"
+                className="flex flex-col items-center text-center"
               >
-                <div className="text-9xl">...</div>
-                <div className="text-muted-foreground mt-8 text-4xl font-light">
-                  Aguardando chamada
+                <span className="text-muted-foreground/30 text-sm font-light tracking-[0.3em] uppercase">
+                  {queue?.name}
+                </span>
+                <div className="text-muted-foreground/10 mt-8 text-[clamp(6rem,20vw,16rem)] leading-none font-black tracking-tighter">
+                  —
                 </div>
+                <span className="text-muted-foreground/40 mt-8 text-lg font-light">
+                  Aguardando próxima chamada
+                </span>
               </motion.div>
             )}
           </AnimatePresence>
         </section>
 
-        {/* Right Side - History (33%) */}
-        <aside className="bg-secondary/30 mt-8 flex flex-1 flex-col rounded-[3rem] p-8 backdrop-blur-sm lg:mt-0">
-          <h2 className="text-muted-foreground mb-8 text-center text-2xl font-medium tracking-widest uppercase">
-            Últimas Chamadas
-          </h2>
+        {/* Right: History - 30% - Minimal sidebar */}
+        <aside className="border-border/30 flex flex-[3] flex-col border-l">
+          <header className="p-8 pb-4">
+            <h2 className="text-muted-foreground/50 text-xs font-medium tracking-[0.2em] uppercase">
+              Anteriores
+            </h2>
+          </header>
 
-          <div className="flex flex-1 flex-col gap-6 overflow-hidden">
+          <div className="flex flex-1 flex-col gap-1 px-4 pb-8">
             <AnimatePresence>
               {previousTickets.map((ticket, index) => (
                 <motion.div
                   key={ticket.id}
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-card flex items-center justify-between rounded-3xl p-6 shadow-sm"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1 - index * 0.25, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: index * 0.05, duration: 0.4 }}
+                  className="hover:bg-muted/30 flex items-center justify-between rounded-2xl p-6 transition-colors"
                 >
-                  <div className="flex flex-col">
-                    <span className="text-muted-foreground text-sm font-medium">
-                      {ticket.categoryName}
-                    </span>
+                  <div className="flex flex-col gap-1">
                     <span
-                      className="text-5xl font-bold"
+                      className="text-4xl font-bold tracking-tight"
                       style={{ color: ticket.categoryColor }}
                     >
                       {ticket.fullCode}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-muted-foreground block text-sm">Guichê</span>
-                    <span className="text-foreground text-2xl font-bold">
-                      {ticket.counterName?.replace('Guichê', '')}
+                    <span className="text-muted-foreground text-sm font-light">
+                      {ticket.counterName?.replace('Guichê ', '')}
                     </span>
                   </div>
                 </motion.div>
@@ -200,18 +232,20 @@ export default function MonitorPage() {
             </AnimatePresence>
 
             {previousTickets.length === 0 && (
-              <div className="text-muted-foreground flex h-full items-center justify-center text-xl italic">
-                Histórico vazio
+              <div className="text-muted-foreground/30 flex flex-1 items-center justify-center text-sm">
+                Sem chamadas anteriores
               </div>
             )}
           </div>
-
-          {/* Clock */}
-          <div className="text-muted-foreground mt-auto pt-8 text-center text-4xl font-light tracking-widest">
-            {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-          </div>
         </aside>
       </main>
+
+      {/* Bottom: Time - Almost invisible */}
+      <footer className="absolute bottom-8 left-1/2 -translate-x-1/2">
+        <time className="text-muted-foreground/20 text-sm font-light tabular-nums">
+          {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+        </time>
+      </footer>
     </div>
   )
 }

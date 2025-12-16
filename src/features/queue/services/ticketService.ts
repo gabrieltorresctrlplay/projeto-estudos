@@ -265,4 +265,25 @@ export const ticketService = {
       return { error: handleError(error, 'finishTicket') }
     }
   },
+
+  /**
+   * Salvar feedback do cliente
+   */
+  async saveFeedback(
+    queueId: string,
+    ticketId: string,
+    rating: number,
+    comment?: string,
+  ): Promise<{ error: Error | null }> {
+    try {
+      await updateDoc(doc(db, 'queues', queueId, 'tickets', ticketId), {
+        feedbackRating: rating,
+        feedbackComment: comment || null,
+        feedbackAt: serverTimestamp(),
+      })
+      return { error: null }
+    } catch (error) {
+      return { error: handleError(error, 'saveFeedback') }
+    }
+  },
 }

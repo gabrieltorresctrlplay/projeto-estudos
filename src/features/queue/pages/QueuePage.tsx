@@ -21,7 +21,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
-import { Loader2, MonitorPlay, Plus, Settings, Trash2, Tv, Users } from 'lucide-react'
+import { BarChart3, Loader2, MonitorPlay, Plus, Settings, Trash2, Tv, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -264,30 +264,59 @@ export default function QueuePage() {
                     </CardContent>
                   </Card>
 
-                  {/* Configurações */}
-                  <Card className="bg-muted cursor-not-allowed border-dashed opacity-60">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-muted-foreground text-base">
-                          Configurações
-                        </CardTitle>
-                        <Settings className="text-muted-foreground h-5 w-5" />
-                      </div>
-                      <CardDescription className="text-xs">
-                        Ajuste categorias e preferências
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Button
-                        className="w-full"
-                        variant="ghost"
-                        size="sm"
-                        disabled
-                      >
-                        Em breve
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  {/* Analytics - Admin/Owner only */}
+                  {(currentMemberRole === 'owner' || currentMemberRole === 'admin') && (
+                    <Card
+                      className="border-border cursor-pointer transition-shadow hover:shadow-md"
+                      onClick={() => navigate(`/queue/${queue.id}/analytics`)}
+                    >
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base">Analytics</CardTitle>
+                          <BarChart3 className="text-primary h-5 w-5" />
+                        </div>
+                        <CardDescription className="text-xs">
+                          Métricas e performance da fila
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button
+                          className="w-full transition-transform active:scale-95"
+                          variant="outline"
+                          size="sm"
+                        >
+                          Ver Métricas
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Configurações - Admin/Owner only */}
+                  {(currentMemberRole === 'owner' || currentMemberRole === 'admin') && (
+                    <Card
+                      className="border-border cursor-pointer transition-shadow hover:shadow-md"
+                      onClick={() => navigate(`/queue/${queue.id}/settings`)}
+                    >
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base">Configurações</CardTitle>
+                          <Settings className="text-primary h-5 w-5" />
+                        </div>
+                        <CardDescription className="text-xs">
+                          SLA, áudio e personalização do totem
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button
+                          className="w-full transition-transform active:scale-95"
+                          variant="outline"
+                          size="sm"
+                        >
+                          Configurar
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Deletar Fila - Admin/Owner only */}
                   {(currentMemberRole === 'owner' || currentMemberRole === 'admin') && (
