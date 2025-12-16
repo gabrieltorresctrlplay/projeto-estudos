@@ -5,12 +5,14 @@ import {
   doc,
   getDoc,
   getDocs,
+  increment,
   query,
   serverTimestamp,
   Timestamp,
   updateDoc,
   where,
 } from 'firebase/firestore'
+
 import type {
   CallNextInput,
   Counter,
@@ -184,11 +186,13 @@ export const ticketService = {
 
   /**
    * Rechamar ticket atual
+   * Incrementa recallCount para forçar o monitor a reagir
    */
   async recallTicket(queueId: string, ticketId: string): Promise<{ error: Error | null }> {
     try {
       await updateDoc(doc(db, 'queues', queueId, 'tickets', ticketId), {
         calledAt: serverTimestamp(),
+        recallCount: increment(1),
       })
       return { error: null }
     } catch (error) {

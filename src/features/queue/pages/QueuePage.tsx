@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useOrganizationContext } from '@/features/organization/context/OrganizationContext'
-import {
-  counterService,
-  queueManagementService,
-} from '@/features/queue/services/queueService'
+import { counterService, queueManagementService } from '@/features/queue/services/queueService'
 import type { Queue, ServiceCategory } from '@/features/queue/types/queue'
 import { QueueSkeleton } from '@/shared/components/feedback/PageSkeleton'
 import { Badge } from '@/shared/components/ui/badge'
@@ -24,13 +21,13 @@ import {
 } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
-import { Loader2, MonitorPlay, Plus, Settings, Tv, Users } from 'lucide-react'
+import { Loader2, MonitorPlay, Plus, Settings, Trash2, Tv, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 export default function QueuePage() {
   const navigate = useNavigate()
-  const { currentOrganization } = useOrganizationContext()
+  const { currentOrganization, currentMemberRole } = useOrganizationContext()
 
   const [queues, setQueues] = useState<Queue[]>([])
 
@@ -114,6 +111,28 @@ export default function QueuePage() {
   const handleOpenMonitorDialog = (queueId: string) => {
     setSelectedQueueId(queueId)
     setIsMonitorDialogOpen(true)
+  }
+
+  const handleDeleteQueue = async (queue: Queue) => {
+    const isAdmin = currentMemberRole === 'owner' || currentMemberRole === 'admin'
+    if (!isAdmin) {
+      toast.error('Sem permissão', { description: 'Apenas administradores podem deletar filas' })
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Tem certeza que deseja deletar a fila "${queue.name}"? Esta ação não pode ser desfeita.`,
+    )
+    if (!confirmed) return
+
+    const { error } = await queueManagementService.deleteQueue(queue.id)
+
+    if (error) {
+      toast.error('Erro ao deletar fila', { description: error.message })
+    } else {
+      toast.success('Fila deletada com sucesso')
+      setQueues((prev) => prev.filter((q) => q.id !== queue.id))
+    }
   }
 
   if (isLoading) {
@@ -210,12 +229,14 @@ export default function QueuePage() {
                   {/* Guichês */}
                   <Card
                     className="border-border cursor-pointer"
-                    onClick={async () => {
-                      const { data } = await counterService.getCounters(queue.id)
-                      if (data && data.length > 0) {
-                        navigate(`/queue/${queue.id}/counter/${data[0].id}`)
+                    onClick={() => {
+                      const isAdmin = currentMemberRole === 'owner' || currentMemberRole === 'admin'
+                      if (isAdmin) {
+                        // Admin/Owner vai para gerenciamento de guichês
+                        navigate(`/queue/${queue.id}/counters`)
                       } else {
-                        toast.error('Nenhum guichê configurado')
+                        // Funcionário vai para meus guichês
+                        navigate('/my-counters')
                       }
                     }}
                   >
@@ -225,7 +246,9 @@ export default function QueuePage() {
                         <Users className="text-primary h-5 w-5" />
                       </div>
                       <CardDescription className="text-xs">
-                        Gerencie os guichês de atendimento
+                        {currentMemberRole === 'owner' || currentMemberRole === 'admin'
+                          ? 'Gerencie e atribua guichês aos funcionários'
+                          : 'Acesse seus guichês atribuídos'}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -234,7 +257,9 @@ export default function QueuePage() {
                         variant="outline"
                         size="sm"
                       >
-                        Acessar
+                        {currentMemberRole === 'owner' || currentMemberRole === 'admin'
+                          ? 'Gerenciar'
+                          : 'Meus Guichês'}
                       </Button>
                     </CardContent>
                   </Card>
@@ -263,6 +288,33 @@ export default function QueuePage() {
                       </Button>
                     </CardContent>
                   </Card>
+
+                  {/* Deletar Fila - Admin/Owner only */}
+                  {(currentMemberRole === 'owner' || currentMemberRole === 'admin') && (
+                    <Card
+                      className="border-destructive/30 hover:border-destructive cursor-pointer transition-colors"
+                      onClick={() => handleDeleteQueue(queue)}
+                    >
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-destructive text-base">Deletar Fila</CardTitle>
+                          <Trash2 className="text-destructive h-5 w-5" />
+                        </div>
+                        <CardDescription className="text-xs">
+                          Remove permanentemente esta fila
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button
+                          className="w-full transition-transform active:scale-95"
+                          variant="destructive"
+                          size="sm"
+                        >
+                          Deletar
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               </CardContent>
             </Card>

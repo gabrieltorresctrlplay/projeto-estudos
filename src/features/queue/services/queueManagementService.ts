@@ -7,10 +7,13 @@ import {
   getDocs,
   query,
   serverTimestamp,
+  updateDoc,
   where,
   writeBatch,
 } from 'firebase/firestore'
-import type { Queue, QueueSettings, ServiceCategory } from '../types/queue'
+
+import type { Queue, QueueSettings, ServiceCategory, TotemSettings } from '../types/queue'
+import { counterService } from './counterService'
 
 // ============================================
 // Queue Management Service
@@ -71,6 +74,71 @@ export const queueManagementService = {
   },
 
   /**
+   * Criar fila padrão para organização
+   * Chamado automaticamente quando organização é criada
+   */
+  async createDefaultQueue(
+    organizationId: string,
+  ): Promise<{ queueId: string | null; error: Error | null }> {
+    try {
+      // Categorias padrão
+      const defaultCategories: Omit<ServiceCategory, 'id'>[] = [
+        {
+          name: 'Atendimento Geral',
+          prefix: 'A',
+          color: '#3b82f6',
+          priority: 1,
+          estimatedTime: 15,
+          isActive: true,
+        },
+        {
+          name: 'Preferencial',
+          prefix: 'P',
+          color: '#f59e0b',
+          priority: 10,
+          estimatedTime: 10,
+          isActive: true,
+        },
+      ]
+
+      // Criar fila
+      const { queueId, error } = await this.createQueue(
+        organizationId,
+        'Atendimento Principal',
+        defaultCategories as ServiceCategory[],
+      )
+
+      if (error || !queueId) {
+        return { queueId: null, error: error || new Error('Erro ao criar fila') }
+      }
+
+      // Criar 3 guichês padrão
+      for (let i = 1; i <= 3; i++) {
+        await counterService.createCounter(queueId, organizationId, `Guichê ${i}`, i)
+      }
+
+      return { queueId, error: null }
+    } catch (error) {
+      return { queueId: null, error: handleError(error, 'createDefaultQueue') }
+    }
+  },
+
+  /**
+   * Deletar fila (soft delete - marca como inativa)
+   */
+  async deleteQueue(queueId: string): Promise<{ error: Error | null }> {
+    try {
+      await updateDoc(doc(db, 'queues', queueId), {
+        isActive: false,
+        updatedAt: serverTimestamp(),
+      })
+      return { error: null }
+    } catch (error) {
+      return { error: handleError(error, 'deleteQueue') }
+    }
+  },
+
+  /**
    * Buscar fila por ID
    */
   async getQueue(queueId: string): Promise<{ data: Queue | null; error: Error | null }> {
@@ -82,6 +150,33 @@ export const queueManagementService = {
       return { data: { id: docSnap.id, ...docSnap.data() } as Queue, error: null }
     } catch (error) {
       return { data: null, error: handleError(error, 'getQueue') }
+    }
+  },
+
+  /**
+   * Atualizar configurações da fila
+   */
+  async updateQueue(
+    queueId: string,
+    updates: Partial<{
+      name: string
+      settings: Partial<QueueSettings>
+      totemSettings: Partial<TotemSettings>
+    }>,
+  ): Promise<{ error: Error | null }> {
+    try {
+      const updateData: Record<string, unknown> = {
+        updatedAt: serverTimestamp(),
+      }
+
+      if (updates.name) updateData.name = updates.name
+      if (updates.settings) updateData.settings = updates.settings
+      if (updates.totemSettings) updateData.totemSettings = updates.totemSettings
+
+      await updateDoc(doc(db, 'queues', queueId), updateData)
+      return { error: null }
+    } catch (error) {
+      return { error: handleError(error, 'updateQueue') }
     }
   },
 

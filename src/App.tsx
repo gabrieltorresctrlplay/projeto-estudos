@@ -21,6 +21,9 @@ const ChatLabPage = lazy(() => import('@/features/chat-lab/pages/ChatLabPage'))
 const TotemPage = lazy(() => import('@/features/queue/pages/TotemPage'))
 const MonitorPage = lazy(() => import('@/features/queue/pages/MonitorPage'))
 const CounterPage = lazy(() => import('@/features/queue/pages/CounterPage'))
+const CounterManagementPage = lazy(() => import('@/features/queue/pages/CounterManagementPage'))
+const MyCountersPage = lazy(() => import('@/features/queue/pages/MyCountersPage'))
+const QueueAnalyticsPage = lazy(() => import('@/features/queue/pages/QueueAnalyticsPage'))
 
 function App() {
   return (
@@ -70,6 +73,21 @@ function App() {
               <Route
                 path="/queue/:queueId/counter/:counterId"
                 element={<CounterPage />}
+              />
+              {/* Counter Management - Admin only */}
+              <Route
+                path="/queue/:queueId/counters"
+                element={<CounterManagementPage />}
+              />
+              {/* My Counters - For employees */}
+              <Route
+                path="/my-counters"
+                element={<MyCountersPage />}
+              />
+              {/* Queue Analytics - Admin only */}
+              <Route
+                path="/queue/:queueId/analytics"
+                element={<QueueAnalyticsPage />}
               />
               <Route element={<DashboardLayout />}>
                 <Route

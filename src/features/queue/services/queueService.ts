@@ -1,4 +1,5 @@
 import { counterService } from './counterService'
+import { metricsService } from './metricsService'
 import { queueManagementService } from './queueManagementService'
 import { queueStatsService } from './queueStatsService'
 import { realtimeService } from './realtimeService'
@@ -14,6 +15,7 @@ export const queueService = {
   ...ticketService,
   ...queueStatsService,
   ...realtimeService,
+  ...metricsService,
 }
 
 // Export individual services for granular usage
@@ -23,4 +25,5 @@ export {
   ticketService,
   queueStatsService,
   realtimeService,
+  metricsService,
 }

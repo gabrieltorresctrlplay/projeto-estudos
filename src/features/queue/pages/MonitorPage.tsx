@@ -33,11 +33,17 @@ export default function MonitorPage() {
       (tickets) => {
         setCalledTickets(tickets)
 
-        // Chamar áudio se novo ticket
-        if (tickets.length > 0 && tickets[0].id !== lastCalledRef.current) {
-          lastCalledRef.current = tickets[0].id
-          if (audioEnabled) {
-            playCallAudio(tickets[0])
+        // Chamar áudio se novo ticket OU rechamada (recallCount mudou)
+        if (tickets.length > 0) {
+          const latestTicket = tickets[0]
+          // Criar uma chave única que inclui id e recallCount
+          const ticketKey = `${latestTicket.id}-${latestTicket.recallCount || 0}`
+
+          if (ticketKey !== lastCalledRef.current) {
+            lastCalledRef.current = ticketKey
+            if (audioEnabled) {
+              playCallAudio(latestTicket)
+            }
           }
         }
       },
